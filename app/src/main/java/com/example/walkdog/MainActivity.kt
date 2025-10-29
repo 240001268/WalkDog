@@ -45,3 +45,9 @@ fun GreetingPreview() {
         Greeting("Android")
     }
 }
+
+@Preview
+@Composable
+fun Test(): Unit {
+    Text("bla")
+}
