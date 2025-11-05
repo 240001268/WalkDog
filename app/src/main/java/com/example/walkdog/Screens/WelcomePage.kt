@@ -101,6 +101,7 @@ fun ProfileHeader(name: String, location: String) {
             )
         }
 
+
         Column(
             horizontalAlignment = Alignment.Start,
             modifier = Modifier.weight(1f).padding(start = 10.dp)
