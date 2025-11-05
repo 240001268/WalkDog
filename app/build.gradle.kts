@@ -57,3 +57,22 @@ dependencies {
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
 }
+dependencies {
+    // Compose
+    implementation(platform("androidx.compose:compose-bom:2024.02.00"))
+    implementation("androidx.compose.material3:material3")
+    implementation("androidx.compose.material:material-icons-extended")
+
+    // ViewModel
+    implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.7.0")
+
+    // Coil (imagens)
+    implementation("io.coil-kt:coil-compose:2.5.0")
+
+    // Navigation
+    implementation("androidx.navigation:navigation-compose:2.7.6")
+}
+
+
+
+

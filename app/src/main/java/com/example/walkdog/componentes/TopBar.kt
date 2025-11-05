@@ -7,5 +7,5 @@ import androidx.compose.ui.tooling.preview.Preview
 @Preview
 @Composable
 fun TopBarcomponent(): Unit {
-    Text("Pardais")
+    Text("Teste")
 }
