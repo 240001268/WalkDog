@@ -14,11 +14,13 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavHostController
+import androidx.navigation.compose.rememberNavController
 import com.example.walkdog.R
 
 @Preview(showBackground = true)
 @Composable
-fun WelcomePage() {
+fun WelcomePage(navController: NavHostController = rememberNavController()) {
     val horizontalPadding = 15.dp
 
     Column(
