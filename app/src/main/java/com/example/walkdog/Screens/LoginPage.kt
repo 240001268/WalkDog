@@ -1,6 +1,5 @@
 package com.example.walkdog.Screens
 
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
@@ -8,12 +7,11 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
-import com.example.walkdog.R
+import com.example.walkdog.componentes.LogotipoComponent
 
 @Preview(showBackground = true)
 @Composable
@@ -30,20 +28,7 @@ fun LoginPage(navController: NavHostController = rememberNavController()) {
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         // LOGO
-        Image(
-            painter = painterResource(id = R.drawable.captura_de_tela_2025_11_05_213258),
-            contentDescription = "Logo",
-            modifier = Modifier
-
-
-        )
-
-        // TÍTULO
-        Text(
-            text = "WalkDog",
-            color = Color.Black,
-            style = MaterialTheme.typography.headlineSmall
-        )
+        LogotipoComponent()
 
         // EMAIL
         TextField(
@@ -94,3 +79,4 @@ fun LoginPage(navController: NavHostController = rememberNavController()) {
         }
     }
 }
+

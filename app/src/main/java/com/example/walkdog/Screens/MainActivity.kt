@@ -63,7 +63,8 @@ fun PerfilScreen() {
                 contentAlignment = Alignment.Center
             ) {
                 Image(
-                    painter = painterResource(id = R.drawable.ic_launcher_background),
+                    painter = painterResource(id = com.example.walkdog.R.drawable.ic_launcher_background),
+
                     contentDescription = "Avatar",
                     modifier = Modifier
                         .size(50.dp)

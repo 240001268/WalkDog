@@ -18,6 +18,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.walkdog.R // ✅ garante acesso aos recursos drawables corretos
+import com.example.walkdog.componentes.LogotipoComponent
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Preview
@@ -34,6 +35,9 @@ fun MarcarPasseioScreen() {
             .padding(24.dp),
         verticalArrangement = Arrangement.spacedBy(20.dp)
     ) {
+
+        LogotipoComponent()
+
         Text(
             text = "Marcar Passeio",
             fontSize = 26.sp,
