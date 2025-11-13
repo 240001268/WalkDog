@@ -7,6 +7,9 @@ import androidx.activity.enableEdgeToEdge
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import com.example.formulariocao.FormularioCaoScreen
+import com.example.formulariocliente.FormularioClienteScreen
+import com.example.formulariofornecedor.FormularioFornecedorScreen
 import com.example.walkdog.Screens.LoginPage
 import com.example.walkdog.Screens.WelcomePage
 import com.example.walkdog.ui.theme.WalkDogTheme
@@ -29,7 +32,6 @@ class MainActivity : ComponentActivity() {
                     composable("home") {
                         WelcomePage(navController)
                     }
-
                 }
             }
         }
