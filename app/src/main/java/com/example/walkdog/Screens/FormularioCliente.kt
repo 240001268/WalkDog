@@ -67,7 +67,6 @@ fun FormularioClienteScreen(onBackClick: () -> Unit = {}) {
     var iban by remember { mutableStateOf("") }
     var profileImageUri by remember { mutableStateOf<Uri?>(null) }
 
-    // Launcher para escolher imagem da galeria
     val launcher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetContent()
     ) { uri: Uri? ->
@@ -80,90 +79,116 @@ fun FormularioClienteScreen(onBackClick: () -> Unit = {}) {
                 title = { Text("Client Profile", color = Color.White) },
                 navigationIcon = {
                     IconButton(onClick = onBackClick) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Voltar", tint = Color.White)
+                        Icon(
+                            Icons.AutoMirrored.Filled.ArrowBack,
+                            contentDescription = "Voltar",
+                            tint = Color.White
+                        )
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(Color(0xFF6A1B9A))
             )
         }
     ) { paddingValues ->
+
         Column(
             modifier = Modifier
                 .padding(paddingValues)
                 .padding(16.dp)
                 .fillMaxSize(),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
+            verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            // Seção de fotografia de perfil
-            Box(
-                modifier = Modifier
-                    .size(100.dp)
-                    .clip(CircleShape)
-                    .clickable { launcher.launch("image/*") },
-                contentAlignment = Alignment.Center
+
+            // Foto + nome no mesmo bloco
+            Card(
+                shape = RoundedCornerShape(16.dp),
+                modifier = Modifier.fillMaxWidth(),
+                colors = CardDefaults.cardColors(containerColor = Color(0xFFF9F9F9))
             ) {
-                if (profileImageUri != null) {
-                    Image(
-                        painter = rememberAsyncImagePainter(profileImageUri),
-                        contentDescription = "Profile Image",
-                        modifier = Modifier.fillMaxSize(),
-                        contentScale = ContentScale.Crop
-                    )
-                } else {
-                    Text("Add Photo", color = Color.Gray, fontSize = 14.sp)
+                Row(
+                    modifier = Modifier.padding(16.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .size(90.dp)
+                            .clip(CircleShape)
+                            .clickable { launcher.launch("image/*") },
+                        contentAlignment = Alignment.Center
+                    ) {
+                        if (profileImageUri != null) {
+                            Image(
+                                painter = rememberAsyncImagePainter(profileImageUri),
+                                contentDescription = "Profile Image",
+                                contentScale = ContentScale.Crop,
+                                modifier = Modifier.fillMaxSize()
+                            )
+                        } else {
+                            Text("Add Photo", color = Color.Gray, fontSize = 13.sp)
+                        }
+                    }
+
+                    Spacer(Modifier.width(16.dp))
+
+                    Column(modifier = Modifier.weight(1f)) {
+                        OutlinedTextField(
+                            value = nome,
+                            onValueChange = { nome = it },
+                            label = { Text("Name") },
+                            modifier = Modifier.fillMaxWidth()
+                        )
+
+                        Spacer(Modifier.height(8.dp))
+
+                        OutlinedTextField(
+                            value = localizacao,
+                            onValueChange = { localizacao = it },
+                            label = { Text("Location / NIF") },
+                            modifier = Modifier.fillMaxWidth()
+                        )
+                    }
                 }
             }
 
-            // Seção de informações pessoais
+            // Endereço
             Card(
                 shape = RoundedCornerShape(16.dp),
                 modifier = Modifier.fillMaxWidth(),
                 colors = CardDefaults.cardColors(containerColor = Color(0xFFF9F9F9))
             ) {
                 Column(modifier = Modifier.padding(16.dp)) {
-                    Text("Personal Information", fontWeight = FontWeight.Bold, fontSize = 18.sp)
-                    Spacer(Modifier.height(12.dp))
+                    Text("Address Info", fontWeight = FontWeight.Bold, fontSize = 18.sp)
+                    Spacer(Modifier.height(10.dp))
 
-                    OutlinedTextField(
-                        value = nome,
-                        onValueChange = { nome = it },
-                        label = { Text("Name") },
-                        modifier = Modifier.fillMaxWidth()
-                    )
-                    Spacer(Modifier.height(8.dp))
                     OutlinedTextField(
                         value = endereco,
                         onValueChange = { endereco = it },
                         label = { Text("Address / Postal Code") },
                         modifier = Modifier.fillMaxWidth()
                     )
-                    Spacer(Modifier.height(8.dp))
-                    OutlinedTextField(
-                        value = localizacao,
-                        onValueChange = { localizacao = it },
-                        label = { Text("Location / NIF") },
-                        modifier = Modifier.fillMaxWidth()
-                    )
                 }
             }
 
-            // Seção de pagamento (igual ao original)
+            // Cartão
             Card(
                 shape = RoundedCornerShape(16.dp),
                 modifier = Modifier.fillMaxWidth(),
                 colors = CardDefaults.cardColors(containerColor = Color(0xFFF9F9F9))
             ) {
                 Column(modifier = Modifier.padding(16.dp)) {
-                    Text("Payment Method", fontWeight = FontWeight.Bold, fontSize = 18.sp)
-                    Spacer(Modifier.height(12.dp))
 
                     Row(verticalAlignment = Alignment.CenterVertically) {
-                        Icon(Icons.Default.CreditCard, contentDescription = null, tint = Color(0xFF6A1B9A))
+                        Icon(
+                            Icons.Default.CreditCard,
+                            contentDescription = null,
+                            tint = Color(0xFF6A1B9A)
+                        )
                         Spacer(Modifier.width(8.dp))
-                        Text("Credit Card", fontWeight = FontWeight.SemiBold)
+                        Text("Payment Method", fontWeight = FontWeight.Bold, fontSize = 18.sp)
                     }
 
-                    Spacer(Modifier.height(8.dp))
+                    Spacer(Modifier.height(10.dp))
+
                     OutlinedTextField(
                         value = numeroCartao,
                         onValueChange = { numeroCartao = it },
@@ -173,6 +198,7 @@ fun FormularioClienteScreen(onBackClick: () -> Unit = {}) {
                     )
 
                     Spacer(Modifier.height(8.dp))
+
                     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                         OutlinedTextField(
                             value = validade,
@@ -192,6 +218,7 @@ fun FormularioClienteScreen(onBackClick: () -> Unit = {}) {
                     }
 
                     Spacer(Modifier.height(8.dp))
+
                     OutlinedTextField(
                         value = iban,
                         onValueChange = { iban = it },
@@ -201,9 +228,8 @@ fun FormularioClienteScreen(onBackClick: () -> Unit = {}) {
                 }
             }
 
-            Spacer(Modifier.height(16.dp))
             Button(
-                onClick = { /* ação de salvar */ },
+                onClick = { /* salvar */ },
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(56.dp),
