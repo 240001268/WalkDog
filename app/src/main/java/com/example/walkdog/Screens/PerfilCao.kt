@@ -1,9 +1,14 @@
 package com.example.perfilcao
 
+import InfoRow
+import InfoSection
+import StatItem
+import StatsGrid
 import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
@@ -13,7 +18,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.text.input.KeyboardOptions
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -23,9 +27,15 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.DirectionsWalk
+import androidx.compose.material.icons.filled.*
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import coil.compose.rememberAsyncImagePainter
+import com.example.walkdog.R
 
+@Preview
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PerfilCaoScreen(onBackClick: () -> Unit = {}) {
@@ -78,7 +88,7 @@ fun PerfilCaoScreen(onBackClick: () -> Unit = {}) {
                 contentAlignment = Alignment.Center
             ) {
                 Image(
-                    painter = painterResource(id = R.drawable.dog_icon),
+                    painter = painterResource(id = R.drawable.carlos),
                     contentDescription = "Dog Avatar",
                     modifier = Modifier.size(90.dp)
                 )
@@ -117,6 +127,7 @@ fun PerfilCaoScreen(onBackClick: () -> Unit = {}) {
                 title = "Informações do Tutor",
                 icon = Icons.Default.Person,
                 content = {},
+                /*
                 trailing = {
                     FloatingActionButton(
                         onClick = {},
@@ -126,7 +137,7 @@ fun PerfilCaoScreen(onBackClick: () -> Unit = {}) {
                     ) {
                         Icon(Icons.Default.Add, "Adicionar", tint = Color.White)
                     }
-                }
+                }*/
             )
         }
     }

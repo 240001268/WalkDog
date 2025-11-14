@@ -1,5 +1,7 @@
 package com.example.formulariocao
 
+import CustomField
+import InfoCard
 import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -13,8 +15,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.text.input.KeyboardOptions
-import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.Alignment
@@ -23,6 +23,8 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
 import coil.compose.rememberAsyncImagePainter
 
@@ -62,7 +64,7 @@ fun FormularioCaoScreen(onBackClick: () -> Unit = {}) {
                         Icon(Icons.Default.ArrowBack, contentDescription = "Voltar", tint = Color.White)
                     }
                 },
-                colors = TopAppBarDefaults.smallTopAppBarColors(containerColor = Color(0xFF6A1B9A))
+                colors = TopAppBarDefaults.topAppBarColors( Color(0xFF6A1B9A))
             )
         }
     ) { paddingValues ->
@@ -78,12 +80,13 @@ fun FormularioCaoScreen(onBackClick: () -> Unit = {}) {
             item {
                 // Foto do Cão
                 Box(
+
                     modifier = Modifier
                         .size(120.dp)
                         .clip(CircleShape)
                         .clickable { launcher.launch("image/*") }
-                        .align(Alignment.CenterHorizontally),
-                    contentAlignment = Alignment.Center
+                        ,
+                    contentAlignment = Alignment.Center,
                 ) {
                     if (profileImageUri != null) {
                         Image(
