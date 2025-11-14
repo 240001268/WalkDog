@@ -28,36 +28,30 @@ import androidx.compose.material.icons.filled.CameraAlt
 import androidx.compose.ui.tooling.preview.Preview
 
 @OptIn(ExperimentalMaterial3Api::class)
-@Preview
 @Composable
+@Preview
 fun FormularioFornecedorScreen(onBackClick: () -> Unit = {}) {
 
-    // Estado da foto de perfil
+    // Foto
     var profileImageUri by remember { mutableStateOf<Uri?>(null) }
-
-    // Launcher para selecionar imagem da galeria
     val launcher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetContent()
-    ) { uri: Uri? ->
-        profileImageUri = uri
-    }
+    ) { uri -> profileImageUri = uri }
 
-    // Estados de campos pessoais
+    // Campos
     var nome by remember { mutableStateOf("") }
     var morada by remember { mutableStateOf("") }
     var codPostal by remember { mutableStateOf("") }
     var localidade by remember { mutableStateOf("") }
     var nif by remember { mutableStateOf("") }
+    var iban by remember { mutableStateOf("") }
 
-    // Erros de campos pessoais
+    // Erros
     var nomeErro by remember { mutableStateOf(false) }
     var moradaErro by remember { mutableStateOf(false) }
     var codPostalErro by remember { mutableStateOf(false) }
     var localidadeErro by remember { mutableStateOf(false) }
     var nifErro by remember { mutableStateOf(false) }
-
-    // Campo de pagamento (apenas IBAN)
-    var iban by remember { mutableStateOf("") }
     var ibanErro by remember { mutableStateOf(false) }
 
     Scaffold(
@@ -66,87 +60,100 @@ fun FormularioFornecedorScreen(onBackClick: () -> Unit = {}) {
                 title = { Text("Perfil do Fornecedor", color = Color.White) },
                 navigationIcon = {
                     IconButton(onClick = onBackClick) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Voltar", tint = Color.White)
+                        Icon(
+                            Icons.AutoMirrored.Filled.ArrowBack,
+                            contentDescription = "Voltar",
+                            tint = Color.White
+                        )
                     }
                 },
-                colors = TopAppBarDefaults.largeTopAppBarColors(containerColor = Color(0xFF6A1B9A))
+                colors = TopAppBarDefaults.topAppBarColors(containerColor = Color(0xFF6A1B9A))
             )
         }
     ) { paddingValues ->
+
         Column(
             modifier = Modifier
                 .padding(paddingValues)
                 .padding(16.dp)
                 .fillMaxSize(),
-            verticalArrangement = Arrangement.spacedBy(16.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
+            verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
 
-            // 🖼️ FOTO DE PERFIL
+            // FOTO DO FORNECEDOR
             Box(
                 modifier = Modifier
-                    .size(100.dp)
+                    .size(110.dp)
                     .clip(CircleShape)
-                    .background(Color.Gray.copy(alpha = 0.3f))
                     .clickable { launcher.launch("image/*") },
                 contentAlignment = Alignment.Center
             ) {
                 if (profileImageUri != null) {
                     Image(
                         painter = rememberAsyncImagePainter(profileImageUri),
-                        contentDescription = "Foto de Perfil",
-                        contentScale = ContentScale.Crop,
-                        modifier = Modifier.fillMaxSize()
+                        contentDescription = "Foto",
+                        modifier = Modifier.fillMaxSize(),
+                        contentScale = ContentScale.Crop
                     )
                 } else {
-                    Icon(
-                        Icons.Default.CameraAlt,
-                        contentDescription = "Adicionar Foto",
-                        tint = Color(0xFF6A1B9A),
-                        modifier = Modifier.size(40.dp)
-                    )
+                    Text("Adicionar Foto", color = Color.Gray, fontSize = 14.sp)
                 }
             }
 
-            // 🧾 SEÇÃO DE INFORMAÇÕES PESSOAIS
-            PersonalCardField("Nome", nome, { nome = it; nomeErro = false }, nomeErro, "Digite o nome completo")
-            PersonalCardField("Morada", morada, { morada = it; moradaErro = false }, moradaErro, "Rua, nº, andar...")
-            PersonalCardField("Código Postal", codPostal, { codPostal = it; codPostalErro = false }, codPostalErro, "Ex: 1000-200")
-            PersonalCardField("Localidade", localidade, { localidade = it; localidadeErro = false }, localidadeErro, "Ex: Lisboa")
-            PersonalCardField("NIF", nif, { nif = it; nifErro = false }, nifErro, "Número de Identificação Fiscal", KeyboardType.Number)
+            // INFORMAÇÕES DO FORNECEDOR
+            CardSection(title = "Informações do Fornecedor") {
 
-            // 💳 SEÇÃO DE PAGAMENTO
-            Text(
-                "Método de Pagamento",
-                fontWeight = FontWeight.Bold,
-                fontSize = 18.sp,
-                modifier = Modifier
-                    .padding(start = 4.dp, top = 12.dp, bottom = 4.dp)
-                    .align(Alignment.Start)
-            )
+                InputField(
+                    value = nome,
+                    onValueChange = { nome = it; nomeErro = false },
+                    label = "Nome",
+                    error = nomeErro
+                )
 
-            Card(
-                shape = RoundedCornerShape(16.dp),
-                modifier = Modifier.fillMaxWidth(),
-                colors = CardDefaults.cardColors(containerColor = Color(0xFFF9F9F9))
-            ) {
-                Column(modifier = Modifier.padding(16.dp)) {
-                    OutlinedTextField(
-                        value = iban,
-                        onValueChange = { iban = it; ibanErro = false },
-                        label = { Text("IBAN") },
-                        modifier = Modifier.fillMaxWidth(),
-                        isError = ibanErro
-                    )
-                    if (ibanErro) Text("IBAN inválido", color = Color.Red, fontSize = 12.sp)
-                }
+                InputField(
+                    value = morada,
+                    onValueChange = { morada = it; moradaErro = false },
+                    label = "Morada",
+                    error = moradaErro
+                )
+
+                InputField(
+                    value = codPostal,
+                    onValueChange = { codPostal = it; codPostalErro = false },
+                    label = "Código Postal",
+                    error = codPostalErro
+                )
+
+                InputField(
+                    value = localidade,
+                    onValueChange = { localidade = it; localidadeErro = false },
+                    label = "Localidade",
+                    error = localidadeErro
+                )
+
+                InputField(
+                    value = nif,
+                    onValueChange = { nif = it; nifErro = false },
+                    label = "NIF",
+                    error = nifErro,
+                    keyboardType = KeyboardType.Number
+                )
             }
 
-            // 🟣 BOTÃO SALVAR
-            Spacer(Modifier.height(8.dp))
+            // MÉTODO DE PAGAMENTO
+            CardSection(title = "Método de Pagamento") {
+                InputField(
+                    value = iban,
+                    onValueChange = { iban = it; ibanErro = false },
+                    label = "IBAN",
+                    error = ibanErro
+                )
+            }
+
+            // BOTÃO
+            Spacer(Modifier.height(12.dp))
             Button(
                 onClick = {
-                    // Validação geral
                     nomeErro = nome.isBlank()
                     moradaErro = morada.isBlank()
                     codPostalErro = codPostal.isBlank()
@@ -167,31 +174,40 @@ fun FormularioFornecedorScreen(onBackClick: () -> Unit = {}) {
 }
 
 @Composable
-fun PersonalCardField(
-    label: String,
-    value: String,
-    onValueChange: (String) -> Unit,
-    error: Boolean,
-    placeholder: String,
-    keyboardType: KeyboardType = KeyboardType.Text
-) {
+fun CardSection(title: String, content: @Composable ColumnScope.() -> Unit) {
     Card(
         shape = RoundedCornerShape(16.dp),
         modifier = Modifier.fillMaxWidth(),
         colors = CardDefaults.cardColors(containerColor = Color(0xFFF9F9F9))
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
-            Text(label, fontWeight = FontWeight.SemiBold, fontSize = 14.sp)
-            OutlinedTextField(
-                value = value,
-                onValueChange = onValueChange,
-                placeholder = { Text(placeholder) },
-                modifier = Modifier.fillMaxWidth(),
-                isError = error,
-                singleLine = true,
-                keyboardOptions = KeyboardOptions(keyboardType = keyboardType)
-            )
-            if (error) Text("Campo obrigatório", color = Color.Red, fontSize = 12.sp)
+            Text(title, fontWeight = FontWeight.Bold, fontSize = 18.sp)
+            Spacer(Modifier.height(12.dp))
+            content()
         }
+    }
+}
+
+@Composable
+fun InputField(
+    value: String,
+    onValueChange: (String) -> Unit,
+    label: String,
+    error: Boolean,
+    keyboardType: KeyboardType = KeyboardType.Text
+) {
+    OutlinedTextField(
+        value = value,
+        onValueChange = onValueChange,
+        label = { Text(label) },
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(bottom = 8.dp),
+        isError = error,
+        keyboardOptions = KeyboardOptions(keyboardType = keyboardType),
+        singleLine = true
+    )
+    if (error) {
+        Text("Campo obrigatório", color = Color.Red, fontSize = 12.sp)
     }
 }
