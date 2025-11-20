@@ -33,6 +33,11 @@ private val LightColorScheme = lightColorScheme(
     */
 )
 
+private val LightColors = lightColorScheme(
+    primary = PinkPrimary,
+    background = Background,
+)
+
 @Composable
 fun WalkDogTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
