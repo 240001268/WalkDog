@@ -34,77 +34,44 @@ import kotlinx.coroutines.delay
 
 
 @Composable
-fun SplashScreen(navController: NavHostController) {
+fun SplashScreen(onTimeout: () -> Unit) {
 
-    var startAnimation by remember { mutableStateOf(false) }
-
-    val alpha by animateFloatAsState(
-        targetValue = if (startAnimation) 1f else 0f,
-        animationSpec = tween(durationMillis = 800),
-        label = ""
-    )
-
-    val scale by animateFloatAsState(
-        targetValue = if (startAnimation) 1f else 0.85f,
-        animationSpec = tween(durationMillis = 800),
-        label = ""
-    )
-
-    LaunchedEffect(true) {
-        startAnimation = true
-        delay(2500) // tempo da splash
-        navController.navigate("login") {
-            popUpTo("splash") { inclusive = true }
-        }
+    LaunchedEffect(Unit) {
+        delay(2000)
+        onTimeout()
     }
 
-    // Cor de fundo idêntica à imagem
-    val backgroundColor: androidx.compose.ui.graphics.Color = Color(0xFFF5EFD9)
-
-    Surface(
-        modifier = Modifier.fillMaxSize(),
-        color = backgroundColor
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Color.White),
+        contentAlignment = Alignment.Center
     ) {
+
         Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(horizontal = 32.dp)
-                .alpha(alpha)
-                .scale(scale),
-            verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
 
-            // Logo
-            Image(
-                painter = painterResource(id = R.drawable.dog_rex),
-                contentDescription = "Logo",
-                modifier = Modifier.size(140.dp)
-            )
-
-            Spacer(Modifier.height(12.dp))
-
-            // Nome abaixo do logo
             Text(
-                text = "TidyNest",
-                style = MaterialTheme.typography.headlineMedium.copy(
-                    color = Color(0xFF154A41) // verde igual ao da imagem
-                )
+                text = "Walkdog",
+                fontSize = 36.sp,
+                color = Color(0xFFE84374)
             )
 
-            Spacer(Modifier.height(40.dp))
+            Spacer(modifier = Modifier.height(32.dp))
+
+            Image(
+                painter = painterResource(id = R.drawable.dog),
+                contentDescription = null,
+                modifier = Modifier.size(180.dp)
+            )
+
+            Spacer(modifier = Modifier.height(40.dp))
 
             CircularProgressIndicator(
-                color = Color(0xFF154A41),
-                strokeWidth = 3.dp,
-                modifier = Modifier.size(45.dp)
+                color = Color(0xFFE84374),
+                strokeWidth = 4.dp
             )
         }
     }
-}
-
-@Preview(showBackground = true)
-@Composable
-fun SplashPreview() {
-    SplashScreen(navController = rememberNavController())
 }
