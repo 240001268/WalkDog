@@ -18,17 +18,32 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
+        
         setContent {
             WalkDogTheme {
+
                 val navController = rememberNavController()
 
                 NavHost(
                     navController = navController,
-                    startDestination = "login"
+                    startDestination = "splash"
                 ) {
-                    composable("login") {
-                        LoginPage(navController)
+
+                    // SPLASH
+                    composable("splash") {
+                        SplashScreen {
+                            navController.navigate("login") {
+                                popUpTo("splash") { inclusive = true }
+                            }
+                        }
                     }
+
+                    // LOGIN
+                    composable("login") {
+                        WelcomePage(navController)
+                    }
+
+                    // HOME
                     composable("home") {
                         WelcomePage(navController)
                     }
