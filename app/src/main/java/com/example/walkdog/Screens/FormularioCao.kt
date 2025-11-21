@@ -38,8 +38,6 @@ fun FormularioCaoScreen(onBackClick: () -> Unit = {}) {
     var raca by remember { mutableStateOf("") }
     var porte by remember { mutableStateOf("") }
     var peso by remember { mutableStateOf("") }
-    var morada by remember { mutableStateOf("") }
-    var codigoPostal by remember { mutableStateOf("") }
     var localidadeCao by remember { mutableStateOf("") }
 
     var nomeDono by remember { mutableStateOf("") }
@@ -64,7 +62,7 @@ fun FormularioCaoScreen(onBackClick: () -> Unit = {}) {
                         Icon(Icons.Default.ArrowBack, contentDescription = "Voltar", tint = Color.White)
                     }
                 },
-                colors = TopAppBarDefaults.topAppBarColors( Color(0xFF6A1B9A))
+                colors = TopAppBarDefaults.topAppBarColors(Color(0xFF6A1B9A))
             )
         }
     ) { paddingValues ->
@@ -80,13 +78,11 @@ fun FormularioCaoScreen(onBackClick: () -> Unit = {}) {
             item {
                 // Foto do Cão
                 Box(
-
                     modifier = Modifier
                         .size(120.dp)
                         .clip(CircleShape)
-                        .clickable { launcher.launch("image/*") }
-                        ,
-                    contentAlignment = Alignment.Center,
+                        .clickable { launcher.launch("image/*") },
+                    contentAlignment = Alignment.Center
                 ) {
                     if (profileImageUri != null) {
                         Image(
@@ -102,34 +98,45 @@ fun FormularioCaoScreen(onBackClick: () -> Unit = {}) {
             }
 
             item {
+                // ➤ Informações do Cão (Campos atualizados)
                 InfoCard(title = "Informações do Cão") {
+
                     CustomField("Nome", nomeCao) { nomeCao = it }
                     CustomField("Raça", raca) { raca = it }
                     CustomField("Porte (Pequeno/Médio/Grande)", porte) { porte = it }
+
                     CustomField(
                         label = "Peso (kg)",
                         value = peso,
                         keyboard = KeyboardType.Number
                     ) { peso = it }
-                    CustomField("Morada", morada) { morada = it }
-                    CustomField("Código Postal", codigoPostal) { codigoPostal = it }
+
+                    // ❗ Campos removidos:
+                    // - Morada
+                    // - Código Postal
+
                     CustomField("Localidade", localidadeCao) { localidadeCao = it }
                 }
             }
 
             item {
+                // ➤ Informações do Dono (inalterado)
                 InfoCard(title = "Informações do Dono") {
+
                     CustomField("Nome", nomeDono) { nomeDono = it }
+
                     CustomField(
                         label = "Email",
                         value = email,
                         keyboard = KeyboardType.Email
                     ) { email = it }
+
                     CustomField(
                         label = "Telefone",
                         value = telefone,
                         keyboard = KeyboardType.Phone
                     ) { telefone = it }
+
                     CustomField("Localidade", localidadeDono) { localidadeDono = it }
                 }
             }
