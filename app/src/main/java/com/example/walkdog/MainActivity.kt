@@ -40,7 +40,7 @@ class MainActivity : ComponentActivity() {
 
                     // LOGIN
                     composable("login") {
-                        WelcomePage(navController)
+                        LoginPage(navController)
                     }
 
                    // FORMULÁRIO CLIENTE
@@ -61,7 +61,7 @@ class MainActivity : ComponentActivity() {
 
                     // HOME (opcional)
                     composable("login") {
-                        WelcomePage(navController)
+                        LoginPage(navController)
                     }
 
                 }
