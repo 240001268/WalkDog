@@ -54,29 +54,28 @@ fun LoginPage(navController: NavHostController = rememberNavController()) {
             Text("Entrar como Cliente")
         }
 
-        // BOTÃO REGISTRAR
+        // BOTÃO REGISTAR CLIENTE
         OutlinedButton(
-            onClick = { println("Registrar clicado!") },
+            onClick = { navController.navigate("formulario_cliente") },
             modifier = Modifier.fillMaxWidth()
         ) {
-            Text("Registar")
+            Text("Registar Cliente")
         }
-
-        Spacer(modifier = Modifier.height(16.dp))
-
+        
         // TEXTO
         Text(
             text = "Entrar como Fornecedor",
             color = Color.Black
         )
-
-        // BOTÃO FORNECEDOR
+        
+        // BOTÃO ENTRAR/REGISTAR FORNECEDOR
         Button(
-            onClick = { navController.navigate("home") },
+            onClick = { navController.navigate("formulario_fornecedor") },
             modifier = Modifier.fillMaxWidth()
         ) {
-            Text("Entrar como Fornecedor")
+            Text("Registar Fornecedor")
         }
+
     }
 }
 
