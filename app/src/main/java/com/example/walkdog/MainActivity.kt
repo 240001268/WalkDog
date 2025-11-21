@@ -55,6 +55,8 @@ class MainActivity : ComponentActivity() {
                     composable("formulario_fornecedor") {
                         FormularioFornecedorScreen(
                             onBackClick = { navController.popBackStack() },
+                            onContactClick = { /* envio de mensagem */ },
+                            onScheduleClick = { /* abrir calendário/agendar */ },
                             onSaveClick = { navController.navigate("login") }
                         )
                     }
