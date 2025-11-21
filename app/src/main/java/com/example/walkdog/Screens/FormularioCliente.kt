@@ -57,7 +57,11 @@ import coil.compose.rememberAsyncImagePainter
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 @Preview
-fun FormularioClienteScreen(onBackClick: () -> Unit = {}) {
+fun FormularioClienteScreen(
+    onBackClick: () -> Unit = {},
+    onSaveClick: () -> Unit = {}
+)
+ {
     var nome by remember { mutableStateOf("") }
     var endereco by remember { mutableStateOf("") }
     var localizacao by remember { mutableStateOf("") }
@@ -228,16 +232,17 @@ fun FormularioClienteScreen(onBackClick: () -> Unit = {}) {
                 }
             }
 
-            Button(
-                onClick = { /* salvar */ },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(56.dp),
-                shape = RoundedCornerShape(12.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF6A1B9A))
-            ) {
-                Text("Save", color = Color.White, fontSize = 18.sp)
-            }
+                    Button(
+                        onClick = { onSaveClick() },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(56.dp),
+                        shape = RoundedCornerShape(12.dp),
+                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF6A1B9A))
+                    ) {
+                        Text("Salvar", color = Color.White, fontSize = 18.sp)
+                    }
+
         }
     }
 }
