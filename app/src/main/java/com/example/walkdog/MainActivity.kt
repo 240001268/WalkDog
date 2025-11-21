@@ -46,19 +46,21 @@ class MainActivity : ComponentActivity() {
                    // FORMULÁRIO CLIENTE
                     composable("formulario_cliente") {
                         FormularioClienteScreen(
-                            onBackClick = { navController.popBackStack() }
+                            onBackClick = { navController.popBackStack() },
+                            onSaveClick = { navController.navigate("login") }
                         )
                     }
 
                     // FORMULÁRIO FORNECEDOR
                     composable("formulario_fornecedor") {
                         FormularioFornecedorScreen(
-                            onBackClick = { navController.popBackStack() }
+                            onBackClick = { navController.popBackStack() },
+                            onSaveClick = { navController.navigate("login") }
                         )
                     }
 
                     // HOME (opcional)
-                    composable("home") {
+                    composable("login") {
                         WelcomePage(navController)
                     }
 
