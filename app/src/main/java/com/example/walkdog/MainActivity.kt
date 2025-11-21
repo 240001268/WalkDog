@@ -7,11 +7,11 @@ import androidx.activity.enableEdgeToEdge
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import com.example.formulariocao.FormularioCaoScreen
 import com.example.formulariocliente.FormularioClienteScreen
 import com.example.formulariofornecedor.FormularioFornecedorScreen
 import com.example.walkdog.Screens.LoginPage
-import com.example.walkdog.Screens.WelcomePage
+import com.example.walkdog.Screens.PerfilClienteScreen
+import com.example.walkdog.Screens.PerfilFornecedorScreen
 import com.example.walkdog.ui.theme.WalkDogTheme
 
 class MainActivity : ComponentActivity() {
@@ -43,6 +43,27 @@ class MainActivity : ComponentActivity() {
                         LoginPage(navController)
                     }
 
+
+                    // PERFIL CLIENTE
+                    composable("perfil-cliente") {
+                        PerfilClienteScreen(
+                            onBackClick = { navController.popBackStack() },
+                            onSaveClick = { navController.navigate("login") }
+                        )
+                    }
+
+                    // PERFIL FORNECEDOR
+                    composable("perfil_fornecedor") {
+                        PerfilFornecedorScreen(
+                            onBackClick = { navController.popBackStack() },
+                            /*onContactClick = { /* envio de mensagem */ },
+                            onScheduleClick = { /* abrir calendário/agendar */ }*/
+                            onSaveClick = { navController.navigate("login") }
+                        )
+                    }
+
+                    //----------------------------------
+
                    // FORMULÁRIO CLIENTE
                     composable("formulario_cliente") {
                         FormularioClienteScreen(
@@ -55,8 +76,8 @@ class MainActivity : ComponentActivity() {
                     composable("formulario_fornecedor") {
                         FormularioFornecedorScreen(
                             onBackClick = { navController.popBackStack() },
-                            onContactClick = { /* envio de mensagem */ },
-                            onScheduleClick = { /* abrir calendário/agendar */ },
+                            /*onContactClick = { /* envio de mensagem */ },
+                            onScheduleClick = { /* abrir calendário/agendar */ }*/
                             onSaveClick = { navController.navigate("login") }
                         )
                     }

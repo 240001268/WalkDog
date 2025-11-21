@@ -36,7 +36,12 @@ data class Cao(
 // ---------------------------------------------------------
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun WelcomePage(navController: NavHostController = rememberNavController()) {
+fun PerfilClienteScreen(
+    onBackClick: () -> Unit = {},
+    onContactClick: () -> Unit = {},
+    onScheduleClick: () -> Unit = {},
+    onSaveClick: () -> Unit
+) {
 
     // Lista dinâmica de cães
     var caes by remember {
@@ -222,9 +227,10 @@ fun PerfilCardComAcoes(cao: Cao, onEditar: () -> Unit, onRemover: () -> Unit) {
         }
     }
 }
-
+/*
 @Preview(showBackground = true)
 @Composable
 fun PreviewWelcomePageDinâmica() {
-    WelcomePage()
+    PerfilClienteScreen()
 }
+*/
