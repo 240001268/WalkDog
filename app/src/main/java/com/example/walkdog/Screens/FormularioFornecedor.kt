@@ -30,7 +30,10 @@ import androidx.compose.ui.tooling.preview.Preview
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 @Preview
-fun FormularioFornecedorScreen(onBackClick: () -> Unit = {}) {
+fun FormularioFornecedorScreen(
+    onBackClick: () -> Unit = {},
+    onSaveClick: () -> Unit = {}
+) {
 
     // Foto
     var profileImageUri by remember { mutableStateOf<Uri?>(null) }
@@ -160,6 +163,14 @@ fun FormularioFornecedorScreen(onBackClick: () -> Unit = {}) {
                     localidadeErro = localidade.isBlank()
                     nifErro = nif.isBlank()
                     ibanErro = iban.isBlank()
+            
+                    val formularioValido =
+                        !nomeErro && !moradaErro && !codPostalErro &&
+                        !localidadeErro && !nifErro && !ibanErro
+            
+                    if (formularioValido) {
+                        onSaveClick()
+                    }
                 },
                 modifier = Modifier
                     .fillMaxWidth()
