@@ -70,7 +70,7 @@ fun LoginPage(navController: NavHostController = rememberNavController()) {
         
         // BOTÃO ENTRAR/REGISTAR FORNECEDOR
         Button(
-            onClick = { navController.navigate("perfil_fornecedor") },
+            onClick = { navController.navigate("formulario_fornecedor") },
             modifier = Modifier.fillMaxWidth()
         ) {
             Text("Registar Fornecedor")
