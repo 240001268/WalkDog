@@ -45,7 +45,7 @@ class MainActivity : ComponentActivity() {
 
 
                     // PERFIL CLIENTE
-                    composable("perfil-cliente") {
+                    composable("perfil_cliente") {
                         PerfilClienteScreen(
                             onBackClick = { navController.popBackStack() },
                             onSaveClick = { navController.navigate("login") }
