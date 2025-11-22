@@ -7,6 +7,8 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -53,19 +55,20 @@ fun PerfilClienteScreen(
             )
         )
     }
-
     Scaffold(
         topBar = {
             TopAppBar(
-                title = {
-                    Text(
-                        "Bem-vindo",
-                        color = Color.White,
-                        fontSize = 20.sp,
-                        fontWeight = FontWeight.Bold
-                    )
+                title = { Text("Bem vindo", color = Color.White) },
+                navigationIcon = {
+                    IconButton(onClick = onBackClick) {
+                        Icon(
+                            Icons.AutoMirrored.Filled.ArrowBack,
+                            contentDescription = "Voltar",
+                            tint = Color.White
+                        )
+                    }
                 },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = Color(0xFF6A1B9A))
+                colors = TopAppBarDefaults.topAppBarColors(Color(0xFF6A1B9A))
             )
         }
     ) { padding ->
@@ -227,10 +230,9 @@ fun PerfilCardComAcoes(cao: Cao, onEditar: () -> Unit, onRemover: () -> Unit) {
         }
     }
 }
-/*
+
 @Preview(showBackground = true)
 @Composable
 fun PreviewWelcomePageDinâmica() {
-    PerfilClienteScreen()
+    PerfilClienteScreen(onSaveClick = {})
 }
-*/

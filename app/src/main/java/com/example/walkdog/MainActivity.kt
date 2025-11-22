@@ -44,36 +44,47 @@ class MainActivity : ComponentActivity() {
                     }
 
 
-                    // BOTÃO ENTRAR CLIENTE
-                    Button(
-                        onClick = { navController.navigate("perfil-cliente") },
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
-                        Text("Entrar como Cliente")
+                    // PERFIL CLIENTE
+                    composable("perfil-cliente") {
+                        PerfilClienteScreen(
+                            onBackClick = { navController.popBackStack() },
+                            onSaveClick = { navController.navigate("login") }
+                        )
                     }
-                    
-                    // BOTÃO ENTRAR FORNECEDOR
-                    Button(
-                        onClick = { navController.navigate("perfil_fornecedor") },
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
-                        Text("Entrar como Fornecedor")
+
+                    // PERFIL FORNECEDOR
+                    composable("perfil_fornecedor") {
+                        PerfilFornecedorScreen(
+                            onBackClick = { navController.popBackStack() },
+                            /*onContactClick = { /* envio de mensagem */ },
+                            onScheduleClick = { /* abrir calendário/agendar */ }*/
+                            onSaveClick = { navController.navigate("login") }
+                        )
                     }
-                    
-                    // BOTÃO REGISTAR CLIENTE
-                    OutlinedButton(
-                        onClick = { navController.navigate("formulario_cliente") },
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
-                        Text("Registar Cliente")
+
+                    //----------------------------------
+
+                   // FORMULÁRIO CLIENTE
+                    composable("formulario_cliente") {
+                        FormularioClienteScreen(
+                            onBackClick = { navController.popBackStack() },
+                            onSaveClick = { navController.navigate("login") }
+                        )
                     }
-                    
-                    // BOTÃO REGISTAR FORNECEDOR
-                    OutlinedButton(
-                        onClick = { navController.navigate("formulario_fornecedor") },
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
-                        Text("Registar Fornecedor")
+
+                    // FORMULÁRIO FORNECEDOR
+                    composable("formulario_fornecedor") {
+                        FormularioFornecedorScreen(
+                            onBackClick = { navController.popBackStack() },
+                            /*onContactClick = { /* envio de mensagem */ },
+                            onScheduleClick = { /* abrir calendário/agendar */ }*/
+                            onSaveClick = { navController.navigate("login") }
+                        )
+                    }
+
+                    // HOME (opcional)
+                    composable("login") {
+                        LoginPage(navController)
                     }
 
                 }

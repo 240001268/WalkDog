@@ -48,7 +48,7 @@ fun LoginPage(navController: NavHostController = rememberNavController()) {
 
         // BOTÃO ENTRAR CLIENTE
         Button(
-            onClick = { navController.navigate("perfil_cliente") },
+            onClick = { navController.navigate("perfil-cliente") },
             modifier = Modifier.fillMaxWidth()
         ) {
             Text("Entrar como Cliente")
@@ -56,7 +56,7 @@ fun LoginPage(navController: NavHostController = rememberNavController()) {
 
         // BOTÃO REGISTAR FORNECEDOR
         Button(
-            onClick = { navController.navigate("perfil_fornecedor") },
+            onClick = { navController.navigate("perfil-fornecedor") },
             modifier = Modifier.fillMaxWidth()
         ) {
             Text("Entrar como Fornecedor")
@@ -65,7 +65,7 @@ fun LoginPage(navController: NavHostController = rememberNavController()) {
         /*------------- REGISTROS -------------*/
         // BOTÃO REGISTAR CLIENTE
         OutlinedButton(
-            onClick = { navController.navigate("formulario_cliente") },
+            onClick = { navController.navigate("formulario-cliente") },
             modifier = Modifier.fillMaxWidth()
         ) {
             Text("Registar Cliente")
@@ -73,7 +73,7 @@ fun LoginPage(navController: NavHostController = rememberNavController()) {
         
         // BOTÃO REGISTAR FORNECEDOR
         OutlinedButton(
-            onClick = { navController.navigate("formulario_fornecedor") },
+            onClick = { navController.navigate("formulario-fornecedor") },
             modifier = Modifier.fillMaxWidth()
         ) {
             Text("Registar Fornecedor")
