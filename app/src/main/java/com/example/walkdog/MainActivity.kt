@@ -18,7 +18,7 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
-        
+
         setContent {
             WalkDogTheme {
 
@@ -29,7 +29,7 @@ class MainActivity : ComponentActivity() {
                     startDestination = "splash"
                 ) {
 
-                    // SPLASH
+                    /* ------------------- SPLASH SCREEN ------------------- */
                     composable("splash") {
                         SplashScreen {
                             navController.navigate("login") {
@@ -38,13 +38,12 @@ class MainActivity : ComponentActivity() {
                         }
                     }
 
-                    // LOGIN
+                    /* --------------------- LOGIN ------------------------ */
                     composable("login") {
                         LoginPage(navController)
                     }
 
-
-                    // PERFIL CLIENTE
+                    /* ------------------ PERFIL CLIENTE ------------------- */
                     composable("perfil-cliente") {
                         PerfilClienteScreen(
                             onBackClick = { navController.popBackStack() },
@@ -52,19 +51,15 @@ class MainActivity : ComponentActivity() {
                         )
                     }
 
-                    // PERFIL FORNECEDOR
+                    /* ----------------- PERFIL FORNECEDOR ---------------- */
                     composable("perfil_fornecedor") {
                         PerfilFornecedorScreen(
                             onBackClick = { navController.popBackStack() },
-                            /*onContactClick = { /* envio de mensagem */ },
-                            onScheduleClick = { /* abrir calendário/agendar */ }*/
                             onSaveClick = { navController.navigate("login") }
                         )
                     }
 
-                    //----------------------------------
-
-                   // FORMULÁRIO CLIENTE
+                    /* ---------------- FORMULÁRIO CLIENTE ---------------- */
                     composable("formulario_cliente") {
                         FormularioClienteScreen(
                             onBackClick = { navController.popBackStack() },
@@ -72,24 +67,15 @@ class MainActivity : ComponentActivity() {
                         )
                     }
 
-                    // FORMULÁRIO FORNECEDOR
+                    /* -------------- FORMULÁRIO FORNECEDOR --------------- */
                     composable("formulario_fornecedor") {
                         FormularioFornecedorScreen(
                             onBackClick = { navController.popBackStack() },
-                            /*onContactClick = { /* envio de mensagem */ },
-                            onScheduleClick = { /* abrir calendário/agendar */ }*/
                             onSaveClick = { navController.navigate("login") }
                         )
                     }
-
-                    // HOME (opcional)
-                    composable("login") {
-                        LoginPage(navController)
-                    }
-
                 }
             }
         }
     }
 }
-

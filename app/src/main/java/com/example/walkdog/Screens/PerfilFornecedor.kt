@@ -22,6 +22,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.walkdog.R
 
+
+
 // DATA MODEL DO SERVIÇO OU CATEGORIA ATENDIDA
 
 data class ServicoFornecedor(
@@ -120,7 +122,7 @@ fun PerfilCardFornecedor(
     descricao: String,
     avatarColor: Color
 ) {
-    PerfilCard(nome, descricao, avatarColor)
+    PerfilCardFornecedor(nome, descricao, avatarColor)
 }
 
 // CARD DO SERVIÇO COM AÇÕES
@@ -197,8 +199,3 @@ fun PerfilCardComAcoesFornecedor(
 
 // PREVIEW
 
-@Preview(showBackground = true)
-@Composable
-fun PreviewPerfilFornecedor() {
-    PerfilFornecedorScreen(onSaveClick = {})
-}
