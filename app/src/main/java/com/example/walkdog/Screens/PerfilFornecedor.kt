@@ -17,32 +17,33 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.walkdog.R
 
-
-
-// DATA MODEL DO SERVIÇO OU CATEGORIA ATENDIDA
-
+// -----------------------------------------------------------
+// DATA CLASS DO SERVIÇO
+// -----------------------------------------------------------
 data class ServicoFornecedor(
     val titulo: String,
     val descricao: String,
     val avatarColor: Color
 )
 
-// TELA PRINCIPAL - PERFIL DO FORNECEDOR
-
+// -----------------------------------------------------------
+// TELA PRINCIPAL — PERFIL DO FORNECEDOR
+// -----------------------------------------------------------
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PerfilFornecedorScreen(
-    onBackClick: () -> Unit = {},
+    onBackClick: () -> Unit,
     onContactClick: () -> Unit = {},
     onScheduleClick: () -> Unit = {},
     onSaveClick: () -> Unit
 ) {
 
-    // Lista dinâmica de serviços oferecidos
+    // Lista dinâmica de serviços (mock)
     var servicos by remember {
         mutableStateOf(
             listOf(
@@ -66,7 +67,9 @@ fun PerfilFornecedorScreen(
                         )
                     }
                 },
-                colors = TopAppBarDefaults.topAppBarColors(Color(0xFF6A1B9A))
+                colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
+                    containerColor = Color(0xFF6A1B9A)
+                )
             )
         }
     ) { padding ->
@@ -85,7 +88,7 @@ fun PerfilFornecedorScreen(
                 avatarColor = Color(0xFF8E67FF)
             )
 
-            // TÍTULO SEÇÃO
+            // TÍTULO LISTA
             Text(
                 text = "Serviços Oferecidos",
                 color = Color.Black,
@@ -93,7 +96,7 @@ fun PerfilFornecedorScreen(
                 fontSize = 20.sp
             )
 
-            // LISTA DINÂMICA DE SERVIÇOS
+            // LISTA DE SERVIÇOS
             LazyColumn(
                 modifier = Modifier.fillMaxWidth(),
                 verticalArrangement = Arrangement.spacedBy(12.dp),
@@ -102,9 +105,9 @@ fun PerfilFornecedorScreen(
                 items(servicos) { servico ->
                     PerfilCardComAcoesFornecedor(
                         servico = servico,
-                        onEditar = { println("Editar ${servico.titulo}") },
+                        onEditar = { /* ação futura */ },
                         onRemover = {
-                            servicos = servicos.filter { it != servico } // remove da lista
+                            servicos = servicos.filter { it != servico }
                         }
                     )
                 }
@@ -113,19 +116,43 @@ fun PerfilFornecedorScreen(
     }
 }
 
-// CARD SIMPLES — REUTILIZADO (mesma estrutura do cliente)
-
+// -----------------------------------------------------------
+// CARTÃO DO PERFIL DO FORNECEDOR (TOPO)
+// -----------------------------------------------------------
 @Composable
-fun PerfilCardFornecedor(
-    nome: String,
-    descricao: String,
-    avatarColor: Color
-) {
-    PerfilCardFornecedor(nome, descricao, avatarColor)
+fun PerfilCard(nome: String, descricao: String, avatarColor: Color) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(16.dp),
+        colors = CardDefaults.cardColors(containerColor = Color.White),
+        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+    ) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier.padding(16.dp)
+        ) {
+
+            // Avatar
+            Box(
+                modifier = Modifier
+                    .size(70.dp)
+                    .clip(CircleShape)
+                    .background(avatarColor)
+            )
+
+            Spacer(modifier = Modifier.width(16.dp))
+
+            Column {
+                Text(nome, fontWeight = FontWeight.Bold, fontSize = 20.sp)
+                Text(descricao, fontSize = 14.sp, color = Color.Gray)
+            }
+        }
+    }
 }
 
-// CARD DO SERVIÇO COM AÇÕES
-
+// -----------------------------------------------------------
+// CARD DO SERVIÇO COM EDITAR E REMOVER
+// -----------------------------------------------------------
 @Composable
 fun PerfilCardComAcoesFornecedor(
     servico: ServicoFornecedor,
@@ -145,7 +172,7 @@ fun PerfilCardComAcoesFornecedor(
                 .fillMaxWidth()
         ) {
 
-            // ÍCONE DO SERVIÇO
+            // Avatar do serviço
             Box(
                 modifier = Modifier
                     .size(60.dp)
@@ -157,14 +184,14 @@ fun PerfilCardComAcoesFornecedor(
                     painter = painterResource(id = R.drawable.ic_launcher_background),
                     contentDescription = "Avatar Serviço",
                     modifier = Modifier
-                        .size(50.dp)
+                        .size(40.dp)
                         .clip(CircleShape)
                 )
             }
 
             Spacer(modifier = Modifier.width(12.dp))
 
-            // TEXTOS
+            // Texto
             Column(modifier = Modifier.weight(1f)) {
                 Text(servico.titulo, fontWeight = FontWeight.Bold, fontSize = 17.sp)
                 Text(servico.descricao, fontSize = 14.sp, color = Color.Gray)
@@ -172,7 +199,7 @@ fun PerfilCardComAcoesFornecedor(
 
             Spacer(modifier = Modifier.width(8.dp))
 
-            // BOTÕES DE AÇÃO
+            // Botões
             Row {
                 Button(
                     onClick = onEditar,
@@ -182,7 +209,9 @@ fun PerfilCardComAcoesFornecedor(
                 ) {
                     Text("Editar", color = Color.White, fontSize = 12.sp)
                 }
+
                 Spacer(modifier = Modifier.width(8.dp))
+
                 Button(
                     onClick = onRemover,
                     colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFE53935)),
@@ -196,5 +225,16 @@ fun PerfilCardComAcoesFornecedor(
     }
 }
 
+// -----------------------------------------------------------
 // PREVIEW
-
+// -----------------------------------------------------------
+@Preview(showBackground = true, showSystemUi = true)
+@Composable
+fun PreviewPerfilFornecedorScreen() {
+    PerfilFornecedorScreen(
+        onBackClick = {},
+        onContactClick = {},
+        onScheduleClick = {},
+        onSaveClick = {}
+    )
+}

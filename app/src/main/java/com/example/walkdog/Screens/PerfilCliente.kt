@@ -1,64 +1,131 @@
 package com.example.walkdog.Screens
 
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.navigation.NavHostController
-import androidx.navigation.compose.rememberNavController
-import com.example.walkdog.R
 
-// ---------------------------------------------------------
-// DATA MODEL DO CÃO
-// ---------------------------------------------------------
-data class Cao(
-    val nome: String,
-    val raca: String,
-    val avatarColor: Color
-)
+// ------------------------------------------------------------
+// MINI MENU
+// ------------------------------------------------------------
+@Composable
+fun MiniMenuCliente(
+    onRegistarCao: () -> Unit,
+    onBuscarFornecedor: () -> Unit,
+    onOutro: () -> Unit
+) {
+    Column(
+        modifier = Modifier.fillMaxWidth(),
+        verticalArrangement = Arrangement.spacedBy(12.dp)
+    ) {
+        MenuButton("Registar Cão", onClick = onRegistarCao)
+        MenuButton("Buscar Fornecedor", onClick = onBuscarFornecedor)
+        MenuButton("Outro", onClick = onOutro)
+    }
+}
 
-// ---------------------------------------------------------
-// TELA PRINCIPAL
-// ---------------------------------------------------------
+@Composable
+fun MenuButton(text: String, onClick: () -> Unit) {
+    Card(
+        onClick = onClick,
+        shape = RoundedCornerShape(14.dp),
+        colors = CardDefaults.cardColors(Color(0xFFF1E6FF)),
+        elevation = CardDefaults.cardElevation(3.dp),
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        Row(
+            modifier = Modifier.padding(16.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                text,
+                fontSize = 17.sp,
+                color = Color(0xFF6A1B9A),
+                fontWeight = FontWeight.SemiBold
+            )
+        }
+    }
+}
+
+// ------------------------------------------------------------
+// CARTÃO SUPERIOR DO CLIENTE (NOVO)
+// ------------------------------------------------------------
+@Composable
+fun PerfilCardCliente(nome: String, descricao: String, avatarColor: Color) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(18.dp),
+        colors = CardDefaults.cardColors(containerColor = Color.White),
+        elevation = CardDefaults.cardElevation(4.dp)
+    ) {
+        Row(
+            modifier = Modifier.padding(20.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            // Avatar do cliente
+            Box(
+                modifier = Modifier
+                    .size(80.dp)
+                    .clip(CircleShape)
+                    .background(avatarColor),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    Icons.Default.Person,
+                    contentDescription = "Foto do Cliente",
+                    tint = Color.White,
+                    modifier = Modifier.size(50.dp)
+                )
+            }
+
+            Spacer(modifier = Modifier.width(16.dp))
+
+            Column {
+                Text(nome, fontWeight = FontWeight.Bold, fontSize = 22.sp)
+                Text(descricao, fontSize = 15.sp, color = Color.Gray)
+            }
+        }
+    }
+}
+
+// ------------------------------------------------------------
+// PERFIL CLIENTE — PRINCIPAL (APRIMORADO)
+// ------------------------------------------------------------
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PerfilClienteScreen(
-    onBackClick: () -> Unit = {},
-    onContactClick: () -> Unit = {},
-    onScheduleClick: () -> Unit = {},
-    onSaveClick: () -> Unit
+    onRegistarCao: () -> Unit,
+    onBuscarFornecedor: () -> Unit,
+    onOutro: () -> Unit,
+    onBackClick: () -> Unit
 ) {
 
-    // Lista dinâmica de cães
-    var caes by remember {
-        mutableStateOf(
-            listOf(
-                Cao("Max", "Labrador Retriever", Color(0xFFFF8A65)),
-                Cao("Luna", "Golden Retriever", Color(0xFF64B5F6)),
-                Cao("Rex", "Fila — Grande", Color(0xFF8E67FF))
-            )
-        )
-    }
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Bem vindo", color = Color.White) },
+                title = {
+                    Text(
+                        "Perfil do Cliente",
+                        color = Color.White,
+                        fontSize = 20.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+                },
                 navigationIcon = {
                     IconButton(onClick = onBackClick) {
                         Icon(
@@ -68,7 +135,9 @@ fun PerfilClienteScreen(
                         )
                     }
                 },
-                colors = TopAppBarDefaults.topAppBarColors(Color(0xFF6A1B9A))
+                colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
+                    containerColor = Color(0xFF6A1B9A)
+                )
             )
         }
     ) { padding ->
@@ -76,163 +145,75 @@ fun PerfilClienteScreen(
         Column(
             modifier = Modifier
                 .padding(padding)
-                .padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(20.dp)
+                .padding(16.dp)
+                .verticalScroll(rememberScrollState()),
+            verticalArrangement = Arrangement.spacedBy(22.dp)
         ) {
 
-            // PERFIL DO CLIENTE
-            PerfilCard(
-                nome = "Nome do Cliente",
-                descricao = "Localidade",
+            // PERFIL APRIMORADO DO CLIENTE
+            PerfilCardCliente(
+                nome = "João Silva",
+                descricao = "Cliente desde 2024 | Lisboa",
                 avatarColor = Color(0xFF8E67FF)
             )
 
-            // TÍTULO SEÇÃO
-            Text(
-                text = "Cães Registrados",
-                color = Color.Black,
-                fontWeight = FontWeight.Bold,
-                fontSize = 20.sp
+            // MINI MENU
+            MiniMenuCliente(
+                onRegistarCao = onRegistarCao,
+                onBuscarFornecedor = onBuscarFornecedor,
+                onOutro = onOutro
             )
 
-            // LISTA DINÂMICA DE CÃES
-            LazyColumn(
-                modifier = Modifier.fillMaxWidth(),
-                verticalArrangement = Arrangement.spacedBy(12.dp),
-                contentPadding = PaddingValues(bottom = 16.dp)
-            ) {
-                items(caes) { cao ->
-                    PerfilCardComAcoes(
-                        cao = cao,
-                        onEditar = { println("Editar ${cao.nome}") },
-                        onRemover = {
-                            caes = caes.filter { it != cao } // remove o cão da lista
-                        }
-                    )
-                }
-            }
+            // TÍTULO
+            Text("Cães Registados", fontWeight = FontWeight.Bold, fontSize = 20.sp)
 
-
+            // LISTA DE CÃES — ESTILO DO FORNECEDOR
+            CaoCard("Rex", "Pastor Alemão", Color(0xFF8E67FF))
+            CaoCard("Bolt", "Labrador", Color(0xFFFF8A65))
         }
     }
 }
 
-// ---------------------------------------------------------
-// CARD DO CLIENTE OU CÃO (simples)
-// ---------------------------------------------------------
+// ------------------------------------------------------------
+// CARD DO CÃO — BASEADO NO LAYOUT DO FORNECEDOR
+// ------------------------------------------------------------
 @Composable
-fun PerfilCard(nome: String, descricao: String, avatarColor: Color) {
+fun CaoCard(nome: String, raca: String, avatarColor: Color) {
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(containerColor = Color.White),
-        elevation = CardDefaults.cardElevation(defaultElevation = 3.dp)
+        colors = CardDefaults.cardColors(Color.White),
+        elevation = CardDefaults.cardElevation(3.dp)
     ) {
         Row(
-            verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier.padding(16.dp)
+            modifier = Modifier.padding(16.dp),
+            verticalAlignment = Alignment.CenterVertically
         ) {
             Box(
                 modifier = Modifier
                     .size(60.dp)
                     .clip(CircleShape)
-                    .background(avatarColor),
-                contentAlignment = Alignment.Center
-            ) {
-                Image(
-                    painter = painterResource(id = R.drawable.ic_launcher_background),
-                    contentDescription = "Avatar",
-                    modifier = Modifier
-                        .size(50.dp)
-                        .clip(CircleShape)
-                )
-            }
-
-            Spacer(modifier = Modifier.width(12.dp))
-
-            Column(modifier = Modifier.weight(1f)) {
-                Text(
-                    text = nome,
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 17.sp
-                )
-                Text(
-                    text = descricao,
-                    fontSize = 14.sp,
-                    color = Color.Gray
-                )
+                    .background(avatarColor)
+            )
+            Spacer(modifier = Modifier.width(16.dp))
+            Column {
+                Text(nome, fontSize = 18.sp, fontWeight = FontWeight.Bold)
+                Text(raca, fontSize = 14.sp, color = Color.Gray)
             }
         }
     }
 }
 
-// ---------------------------------------------------------
-// CARD DO CÃO COM BOTÕES DE AÇÃO
-// ---------------------------------------------------------
+// ------------------------------------------------------------
+// PREVIEW
+// ------------------------------------------------------------
+@Preview(showBackground = true, showSystemUi = true)
 @Composable
-fun PerfilCardComAcoes(cao: Cao, onEditar: () -> Unit, onRemover: () -> Unit) {
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(containerColor = Color.White),
-        elevation = CardDefaults.cardElevation(defaultElevation = 3.dp)
-    ) {
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier
-                .padding(16.dp)
-                .fillMaxWidth()
-        ) {
-            Box(
-                modifier = Modifier
-                    .size(60.dp)
-                    .clip(CircleShape)
-                    .background(cao.avatarColor),
-                contentAlignment = Alignment.Center
-            ) {
-                Image(
-                    painter = painterResource(id = R.drawable.ic_launcher_background),
-                    contentDescription = "Avatar",
-                    modifier = Modifier
-                        .size(50.dp)
-                        .clip(CircleShape)
-                )
-            }
-
-            Spacer(modifier = Modifier.width(12.dp))
-
-            Column(modifier = Modifier.weight(1f)) {
-                Text(cao.nome, fontWeight = FontWeight.Bold, fontSize = 17.sp)
-                Text(cao.raca, fontSize = 14.sp, color = Color.Gray)
-            }
-
-            Spacer(modifier = Modifier.width(8.dp))
-
-            Row {
-                Button(
-                    onClick = onEditar,
-                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF6A1B9A)),
-                    shape = RoundedCornerShape(12.dp),
-                    contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp)
-                ) {
-                    Text("Editar", color = Color.White, fontSize = 12.sp)
-                }
-                Spacer(modifier = Modifier.width(8.dp))
-                Button(
-                    onClick = onRemover,
-                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFE53935)),
-                    shape = RoundedCornerShape(12.dp),
-                    contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp)
-                ) {
-                    Text("Remover", color = Color.White, fontSize = 12.sp)
-                }
-            }
-        }
-    }
-}
-
-@Preview(showBackground = true)
-@Composable
-fun PreviewWelcomePageDinâmica() {
-    PerfilClienteScreen(onSaveClick = {})
+fun PreviewPerfilClienteScreen() {
+    PerfilClienteScreen(
+        onRegistarCao = {},
+        onBuscarFornecedor = {},
+        onOutro = {},
+        onBackClick = {}
+    )
 }

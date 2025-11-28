@@ -7,40 +7,17 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.CreditCard
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.TopAppBarDefaults
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -49,38 +26,106 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.rememberAsyncImagePainter
 
-@OptIn(ExperimentalMaterial3Api::class)
+
+// -------------------------------------------------------------
+// COMPONENTES REUTILIZÁVEIS (IGUAIS AO FORMULÁRIO DO FORNECEDOR)
+// -------------------------------------------------------------
+
 @Composable
-@Preview
+fun CardSection(title: String, content: @Composable ColumnScope.() -> Unit) {
+    Card(
+        shape = RoundedCornerShape(16.dp),
+        modifier = Modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(containerColor = Color(0xFFF9F9F9))
+    ) {
+        Column(modifier = Modifier.padding(16.dp)) {
+            Text(title, fontWeight = FontWeight.Bold, fontSize = 18.sp)
+            Spacer(Modifier.height(12.dp))
+            content()
+        }
+    }
+}
+
+@Composable
+fun InputField(
+    value: String,
+    onValueChange: (String) -> Unit,
+    label: String,
+    error: Boolean,
+    keyboardType: KeyboardType = KeyboardType.Text,
+    isPassword: Boolean = false
+) {
+    OutlinedTextField(
+        value = value,
+        onValueChange = onValueChange,
+        label = { Text(label) },
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(bottom = 8.dp),
+        isError = error,
+        keyboardOptions = KeyboardOptions(keyboardType = keyboardType),
+        visualTransformation = if (isPassword) PasswordVisualTransformation() else VisualTransformation.None,
+        singleLine = true
+    )
+    if (error) {
+        Text("Campo obrigatório", color = Color.Red, fontSize = 12.sp)
+    }
+}
+
+
+// -------------------------------------------------------------
+// FORMULÁRIO COMPLETO DO CLIENTE
+// -------------------------------------------------------------
+
+@Composable
 fun FormularioClienteScreen(
     onBackClick: () -> Unit = {},
     onSaveClick: () -> Unit = {}
-)
- {
+) {
+
+    // CAMPOS DO CLIENTE (COM VALIDAÇÃO)
     var nome by remember { mutableStateOf("") }
-    var endereco by remember { mutableStateOf("") }
-    var localizacao by remember { mutableStateOf("") }
+    var morada by remember { mutableStateOf("") }
+    var codPostal by remember { mutableStateOf("") }
+    var localidade by remember { mutableStateOf("") }
+    var nif by remember { mutableStateOf("") }
+    var email by remember { mutableStateOf("") }
+    var password by remember { mutableStateOf("") }
+
+    // PAGAMENTO
     var numeroCartao by remember { mutableStateOf("") }
     var validade by remember { mutableStateOf("") }
     var cvv by remember { mutableStateOf("") }
     var iban by remember { mutableStateOf("") }
+
+    // FOTO
     var profileImageUri by remember { mutableStateOf<Uri?>(null) }
 
     val launcher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetContent()
-    ) { uri: Uri? ->
-        profileImageUri = uri
-    }
+    ) { uri -> profileImageUri = uri }
+
+    // ERROS (IGUAL AO FORNECEDOR)
+    var nomeErro by remember { mutableStateOf(false) }
+    var moradaErro by remember { mutableStateOf(false) }
+    var codPostalErro by remember { mutableStateOf(false) }
+    var localidadeErro by remember { mutableStateOf(false) }
+    var nifErro by remember { mutableStateOf(false) }
+    var emailErro by remember { mutableStateOf(false) }
+    var passwordErro by remember { mutableStateOf(false) }
+    var ibanErro by remember { mutableStateOf(false) }
+
 
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Client Profile", color = Color.White) },
+                title = { Text("Perfil do Cliente", color = Color.White) },
                 navigationIcon = {
                     IconButton(onClick = onBackClick) {
                         Icon(
@@ -95,154 +140,168 @@ fun FormularioClienteScreen(
         }
     ) { paddingValues ->
 
+
         Column(
             modifier = Modifier
                 .padding(paddingValues)
                 .padding(16.dp)
-                .fillMaxSize(),
-            verticalArrangement = Arrangement.spacedBy(12.dp)
+                .fillMaxSize()
+                .verticalScroll(rememberScrollState()),
+            verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
 
-            // Foto + nome no mesmo bloco
-            Card(
-                shape = RoundedCornerShape(16.dp),
+            // -------------------------------------------------------------
+            // FOTO (SEÇÃO A) — Foto no topo da tela
+            // -------------------------------------------------------------
+            Column(
                 modifier = Modifier.fillMaxWidth(),
-                colors = CardDefaults.cardColors(containerColor = Color(0xFFF9F9F9))
+                horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                Row(
-                    modifier = Modifier.padding(16.dp),
-                    verticalAlignment = Alignment.CenterVertically
+                Box(
+                    modifier = Modifier
+                        .size(110.dp)
+                        .clip(CircleShape)
+                        .clickable { launcher.launch("image/*") },
+                    contentAlignment = Alignment.Center
                 ) {
-                    Box(
-                        modifier = Modifier
-                            .size(90.dp)
-                            .clip(CircleShape)
-                            .clickable { launcher.launch("image/*") },
-                        contentAlignment = Alignment.Center
-                    ) {
-                        if (profileImageUri != null) {
-                            Image(
-                                painter = rememberAsyncImagePainter(profileImageUri),
-                                contentDescription = "Profile Image",
-                                contentScale = ContentScale.Crop,
-                                modifier = Modifier.fillMaxSize()
-                            )
-                        } else {
-                            Text("Add Photo", color = Color.Gray, fontSize = 13.sp)
-                        }
-                    }
-
-                    Spacer(Modifier.width(16.dp))
-
-                    Column(modifier = Modifier.weight(1f)) {
-                        OutlinedTextField(
-                            value = nome,
-                            onValueChange = { nome = it },
-                            label = { Text("Name") },
-                            modifier = Modifier.fillMaxWidth()
+                    if (profileImageUri != null) {
+                        Image(
+                            painter = rememberAsyncImagePainter(profileImageUri),
+                            contentDescription = "Foto do Cliente",
+                            contentScale = ContentScale.Crop,
+                            modifier = Modifier.fillMaxSize()
                         )
-
-                        Spacer(Modifier.height(8.dp))
-
-                        OutlinedTextField(
-                            value = localizacao,
-                            onValueChange = { localizacao = it },
-                            label = { Text("Location / NIF") },
-                            modifier = Modifier.fillMaxWidth()
-                        )
+                    } else {
+                        Text("Adicionar Foto", color = Color.Gray, fontSize = 14.sp)
                     }
                 }
             }
 
-            // Endereço
-            Card(
-                shape = RoundedCornerShape(16.dp),
-                modifier = Modifier.fillMaxWidth(),
-                colors = CardDefaults.cardColors(containerColor = Color(0xFFF9F9F9))
+
+            // -------------------------------------------------------------
+            // INFORMAÇÕES DO CLIENTE (COPIADO E ADAPTADO DO FORNECEDOR)
+            // -------------------------------------------------------------
+            CardSection(title = "Informações do Cliente") {
+
+                InputField(nome, { nome = it; nomeErro = false }, "Nome", nomeErro)
+
+                InputField(morada, { morada = it; moradaErro = false }, "Morada", moradaErro)
+
+                InputField(codPostal, { codPostal = it; codPostalErro = false }, "Código Postal", codPostalErro)
+
+                InputField(localidade, { localidade = it; localidadeErro = false }, "Localidade", localidadeErro)
+
+                InputField(
+                    nif,
+                    { nif = it; nifErro = false },
+                    "NIF",
+                    nifErro,
+                    keyboardType = KeyboardType.Number
+                )
+
+                InputField(
+                    email,
+                    { email = it; emailErro = false },
+                    "Email",
+                    emailErro,
+                    keyboardType = KeyboardType.Email
+                )
+
+                InputField(
+                    password,
+                    { password = it; passwordErro = false },
+                    "Password",
+                    passwordErro,
+                    keyboardType = KeyboardType.Password,
+                    isPassword = true
+                )
+            }
+
+
+            // -------------------------------------------------------------
+            // MÉTODO DE PAGAMENTO
+            // -------------------------------------------------------------
+            CardSection(title = "Método de Pagamento") {
+
+                InputField(
+                    numeroCartao,
+                    { numeroCartao = it },
+                    "Número do Cartão",
+                    false,
+                    keyboardType = KeyboardType.Number
+                )
+
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    InputField(
+                        validade,
+                        { validade = it },
+                        "MM/YY",
+                        false,
+                        keyboardType = KeyboardType.Number
+                    )
+
+                    InputField(
+                        cvv,
+                        { cvv = it },
+                        "CVV",
+                        false,
+                        keyboardType = KeyboardType.Number,
+                        isPassword = true
+                    )
+                }
+
+                InputField(
+                    iban,
+                    { iban = it; ibanErro = false },
+                    "IBAN",
+                    ibanErro
+                )
+            }
+
+
+            // -------------------------------------------------------------
+            // BOTÃO SALVAR
+            // -------------------------------------------------------------
+            Button(
+                onClick = {
+
+                    // VALIDAÇÕES
+                    nomeErro = nome.isBlank()
+                    moradaErro = morada.isBlank()
+                    codPostalErro = codPostal.isBlank()
+                    localidadeErro = localidade.isBlank()
+                    nifErro = nif.isBlank()
+                    emailErro = email.isBlank()
+                    passwordErro = password.isBlank()
+                    ibanErro = iban.isBlank()
+
+                    val valido = listOf(
+                        nomeErro,
+                        moradaErro,
+                        codPostalErro,
+                        localidadeErro,
+                        nifErro,
+                        emailErro,
+                        passwordErro,
+                        ibanErro
+                    ).none { it }
+
+                    if (valido) onSaveClick()
+                },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(56.dp),
+                colors = ButtonDefaults.buttonColors(Color(0xFF6A1B9A)),
+                shape = RoundedCornerShape(12.dp)
             ) {
-                Column(modifier = Modifier.padding(16.dp)) {
-                    Text("Address Info", fontWeight = FontWeight.Bold, fontSize = 18.sp)
-                    Spacer(Modifier.height(10.dp))
-
-                    OutlinedTextField(
-                        value = endereco,
-                        onValueChange = { endereco = it },
-                        label = { Text("Address / Postal Code") },
-                        modifier = Modifier.fillMaxWidth()
-                    )
-                }
+                Text("Salvar", color = Color.White, fontSize = 18.sp)
             }
-
-            // Cartão
-            Card(
-                shape = RoundedCornerShape(16.dp),
-                modifier = Modifier.fillMaxWidth(),
-                colors = CardDefaults.cardColors(containerColor = Color(0xFFF9F9F9))
-            ) {
-                Column(modifier = Modifier.padding(16.dp)) {
-
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Icon(
-                            Icons.Default.CreditCard,
-                            contentDescription = null,
-                            tint = Color(0xFF6A1B9A)
-                        )
-                        Spacer(Modifier.width(8.dp))
-                        Text("Payment Method", fontWeight = FontWeight.Bold, fontSize = 18.sp)
-                    }
-
-                    Spacer(Modifier.height(10.dp))
-
-                    OutlinedTextField(
-                        value = numeroCartao,
-                        onValueChange = { numeroCartao = it },
-                        label = { Text("0000 0000 0000 0000") },
-                        modifier = Modifier.fillMaxWidth(),
-                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
-                    )
-
-                    Spacer(Modifier.height(8.dp))
-
-                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        OutlinedTextField(
-                            value = validade,
-                            onValueChange = { validade = it },
-                            label = { Text("MM/YY") },
-                            modifier = Modifier.weight(1f),
-                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
-                        )
-                        OutlinedTextField(
-                            value = cvv,
-                            onValueChange = { cvv = it },
-                            label = { Text("CVV") },
-                            visualTransformation = PasswordVisualTransformation(),
-                            modifier = Modifier.weight(1f),
-                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
-                        )
-                    }
-
-                    Spacer(Modifier.height(8.dp))
-
-                    OutlinedTextField(
-                        value = iban,
-                        onValueChange = { iban = it },
-                        label = { Text("IBAN") },
-                        modifier = Modifier.fillMaxWidth()
-                    )
-                }
-            }
-
-                    Button(
-                        onClick = { onSaveClick() },
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(56.dp),
-                        shape = RoundedCornerShape(12.dp),
-                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF6A1B9A))
-                    ) {
-                        Text("Salvar", color = Color.White, fontSize = 18.sp)
-                    }
-
         }
     }
+}
+
+@Preview(showSystemUi = true, showBackground = true)
+@Composable
+fun PreviewFormularioClienteScreen() {
+    FormularioClienteScreen()
 }

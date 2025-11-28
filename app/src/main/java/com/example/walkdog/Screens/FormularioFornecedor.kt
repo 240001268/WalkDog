@@ -6,9 +6,11 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -18,11 +20,13 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.rememberAsyncImagePainter
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.tooling.preview.Preview
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -47,6 +51,10 @@ fun FormularioFornecedorScreen(
     var nif by remember { mutableStateOf("") }
     var iban by remember { mutableStateOf("") }
 
+    // Novos campos
+    var email by remember { mutableStateOf("") }
+    var password by remember { mutableStateOf("") }
+
     // Erros
     var nomeErro by remember { mutableStateOf(false) }
     var moradaErro by remember { mutableStateOf(false) }
@@ -54,6 +62,9 @@ fun FormularioFornecedorScreen(
     var localidadeErro by remember { mutableStateOf(false) }
     var nifErro by remember { mutableStateOf(false) }
     var ibanErro by remember { mutableStateOf(false) }
+
+    var emailErro by remember { mutableStateOf(false) }
+    var passwordErro by remember { mutableStateOf(false) }
 
     Scaffold(
         topBar = {
@@ -77,7 +88,8 @@ fun FormularioFornecedorScreen(
             modifier = Modifier
                 .padding(paddingValues)
                 .padding(16.dp)
-                .fillMaxSize(),
+                .fillMaxSize()
+                .verticalScroll(rememberScrollState()),   // <<< SCROLL AQUI
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
 
@@ -139,6 +151,25 @@ fun FormularioFornecedorScreen(
                     error = nifErro,
                     keyboardType = KeyboardType.Number
                 )
+
+                // >>> NOVO CAMPO EMAIL
+                InputField(
+                    value = email,
+                    onValueChange = { email = it; emailErro = false },
+                    label = "Email",
+                    error = emailErro,
+                    keyboardType = KeyboardType.Email
+                )
+
+                // >>> NOVO CAMPO PASSWORD
+                InputField(
+                    value = password,
+                    onValueChange = { password = it; passwordErro = false },
+                    label = "Password",
+                    error = passwordErro,
+                    keyboardType = KeyboardType.Password,
+                    isPassword = true
+                )
             }
 
             // MÉTODO DE PAGAMENTO
@@ -155,17 +186,22 @@ fun FormularioFornecedorScreen(
             Spacer(Modifier.height(12.dp))
             Button(
                 onClick = {
+
+                    // Validar
                     nomeErro = nome.isBlank()
                     moradaErro = morada.isBlank()
                     codPostalErro = codPostal.isBlank()
                     localidadeErro = localidade.isBlank()
                     nifErro = nif.isBlank()
                     ibanErro = iban.isBlank()
-            
+                    emailErro = email.isBlank()
+                    passwordErro = password.isBlank()
+
                     val formularioValido =
                         !nomeErro && !moradaErro && !codPostalErro &&
-                        !localidadeErro && !nifErro && !ibanErro
-            
+                                !localidadeErro && !nifErro && !ibanErro &&
+                                !emailErro && !passwordErro
+
                     if (formularioValido) {
                         onSaveClick()
                     }
@@ -203,7 +239,8 @@ fun InputField(
     onValueChange: (String) -> Unit,
     label: String,
     error: Boolean,
-    keyboardType: KeyboardType = KeyboardType.Text
+    keyboardType: KeyboardType = KeyboardType.Text,
+    isPassword: Boolean = false
 ) {
     OutlinedTextField(
         value = value,
@@ -214,6 +251,7 @@ fun InputField(
             .padding(bottom = 8.dp),
         isError = error,
         keyboardOptions = KeyboardOptions(keyboardType = keyboardType),
+        visualTransformation = if (isPassword) PasswordVisualTransformation() else VisualTransformation.None,
         singleLine = true
     )
     if (error) {

@@ -7,12 +7,12 @@ import androidx.activity.enableEdgeToEdge
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import com.example.formulariocao.FormularioCaoScreen
 import com.example.formulariocliente.FormularioClienteScreen
 import com.example.formulariofornecedor.FormularioFornecedorScreen
-import com.example.walkdog.Screens.LoginPage
-import com.example.walkdog.Screens.PerfilClienteScreen
-import com.example.walkdog.Screens.PerfilFornecedorScreen
+import com.example.walkdog.Screens.*
 import com.example.walkdog.ui.theme.WalkDogTheme
+
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -40,14 +40,21 @@ class MainActivity : ComponentActivity() {
 
                     /* --------------------- LOGIN ------------------------ */
                     composable("login") {
-                        LoginPage(navController)
+                        LoginPage(
+                            onEntrarCliente = { navController.navigate("perfil_cliente") },
+                            onEntrarFornecedor = { navController.navigate("perfil_fornecedor") },
+                            onRegistarCliente = { navController.navigate("formulario_cliente") },
+                            onRegistarFornecedor = { navController.navigate("formulario_fornecedor") }
+                        )
                     }
 
                     /* ------------------ PERFIL CLIENTE ------------------- */
-                    composable("perfil-cliente") {
+                    composable("perfil_cliente") {
                         PerfilClienteScreen(
-                            onBackClick = { navController.popBackStack() },
-                            onSaveClick = { navController.navigate("login") }
+                            onRegistarCao = { navController.navigate("formulario_cao") },
+                            onBuscarFornecedor = { navController.navigate("buscar_fornecedores") },
+                            onOutro = { navController.navigate("outro") },
+                            onBackClick = { navController.popBackStack() }
                         )
                     }
 
@@ -59,7 +66,7 @@ class MainActivity : ComponentActivity() {
                         )
                     }
 
-                    /* ---------------- FORMULÁRIO CLIENTE ---------------- */
+                    /* ------------ FORMULÁRIO CLIENTE ------------------- */
                     composable("formulario_cliente") {
                         FormularioClienteScreen(
                             onBackClick = { navController.popBackStack() },
@@ -67,11 +74,33 @@ class MainActivity : ComponentActivity() {
                         )
                     }
 
-                    /* -------------- FORMULÁRIO FORNECEDOR --------------- */
+                    /* ------------ FORMULÁRIO FORNECEDOR ---------------- */
                     composable("formulario_fornecedor") {
                         FormularioFornecedorScreen(
                             onBackClick = { navController.popBackStack() },
                             onSaveClick = { navController.navigate("login") }
+                        )
+                    }
+
+                    /* ---------------- FORMULÁRIO CÃO ------------------ */
+                    composable("formulario_cao") {
+                        FormularioCaoScreen(
+                            onBackClick = { navController.popBackStack() }
+                        )
+                    }
+
+                    /* ---------------- BUSCAR FORNECEDORES -------------- */
+                    composable("buscar_fornecedores") {
+                        BuscarFornecedoresScreen(
+                            onBackClick = { navController.popBackStack() },
+                            onVerPerfil = {}
+                        )
+                    }
+
+                    /* -------------------- OUTRO SCREEN ------------------ */
+                    composable("outro") {
+                        OutroScreen(
+                            onBackClick = { navController.popBackStack() }
                         )
                     }
                 }

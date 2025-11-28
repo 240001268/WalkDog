@@ -9,13 +9,15 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.navigation.NavHostController
-import androidx.navigation.compose.rememberNavController
 import com.example.walkdog.componentes.LogotipoComponent
 
-@Preview(showBackground = true)
 @Composable
-fun LoginPage(navController: NavHostController = rememberNavController()) {
+fun LoginPage(
+    onEntrarCliente: () -> Unit,
+    onEntrarFornecedor: () -> Unit,
+    onRegistarCliente: () -> Unit,
+    onRegistarFornecedor: () -> Unit
+) {
     var email by remember { mutableStateOf("") }
     var senha by remember { mutableStateOf("") }
 
@@ -48,29 +50,39 @@ fun LoginPage(navController: NavHostController = rememberNavController()) {
 
         // BOTÃO ENTRAR CLIENTE
         Button(
-            onClick = { navController.navigate("perfil-cliente") },
+            onClick = onEntrarCliente,
             modifier = Modifier.fillMaxWidth()
         ) { Text("Entrar como Cliente") }
 
-// BOTÃO ENTRAR FORNECEDOR
+        // BOTÃO ENTRAR FORNECEDOR
         Button(
-            onClick = { navController.navigate("perfil_fornecedor") },
+            onClick = onEntrarFornecedor,
             modifier = Modifier.fillMaxWidth()
         ) { Text("Entrar como Fornecedor") }
 
-// REGISTAR CLIENTE
+        // REGISTAR CLIENTE
         OutlinedButton(
-            onClick = { navController.navigate("formulario_cliente") },
+            onClick = onRegistarCliente,
             modifier = Modifier.fillMaxWidth()
         ) { Text("Registar Cliente") }
 
-// REGISTAR FORNECEDOR
+        // REGISTAR FORNECEDOR
         OutlinedButton(
-            onClick = { navController.navigate("formulario_fornecedor") },
+            onClick = onRegistarFornecedor,
             modifier = Modifier.fillMaxWidth()
         ) { Text("Registar Fornecedor") }
-
-
     }
 }
+
+@Preview(showBackground = true)
+@Composable
+fun PreviewLoginPage() {
+    LoginPage(
+        onEntrarCliente = {},
+        onEntrarFornecedor = {},
+        onRegistarCliente = {},
+        onRegistarFornecedor = {}
+    )
+}
+
 
