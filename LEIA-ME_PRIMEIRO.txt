@@ -1,0 +1,139 @@
+=====================================
+   PROJETO WALKDOG - INSTRUÇÕES
+=====================================
+
+⚠️ AVISO CRÍTICO: CAMINHO DO PROJETO ⚠️
+
+O projeto DEVE estar num caminho SEM acentos!
+
+❌ ERRADO: C:\Projetos\CORREÇÕES WALKDOG\
+✅ CORRETO: C:\Projetos\WalkDog\
+
+Se o caminho atual tiver acentos (Ç, Õ, Á, É, etc.):
+1. Execute: mover_projeto.bat (move automaticamente)
+2. Ou consulte: SOLUCAO_CAMINHO_INVALIDO.md
+
+=====================================
+
+IMPORTANTE: LEIA ISTO ANTES DE ABRIR O PROJETO!
+
+1. COMO ABRIR O PROJETO NO ANDROID STUDIO
+   ----------------------------------------
+   
+   a) Feche o Android Studio se estiver aberto
+   
+   b) Abra o Android Studio
+   
+   c) Na tela inicial, clique em "Open"
+   
+   d) Navegue até a pasta "WalkDog_DB" 
+      (a pasta que contém este ficheiro)
+   
+   e) Selecione esta pasta e clique "OK"
+   
+   f) Aguarde a sincronização do Gradle completar
+
+
+2. SE TIVER ERRO DE CACHE DO GRADLE
+   ---------------------------------
+   
+   a) Feche o Android Studio
+   
+   b) Execute o ficheiro: limpar_gradle_cache.bat
+   
+   c) Aguarde a conclusão
+   
+   d) Reabra o Android Studio
+
+
+3. SE TIVER ERRO DE CARACTERES NO CAMINHO
+   ---------------------------------------
+   
+   Erro: "path contains non-ASCII characters"
+   
+   a) Feche o Android Studio
+   
+   b) Execute: mover_projeto.bat
+   
+   c) Aguarde copiar para C:\Projetos\WalkDog_DB
+   
+   d) Abra o novo caminho no Android Studio
+
+
+4. FICHEIROS DE AJUDA
+   -------------------
+   
+   - SOLUCAO_CAMINHO_INVALIDO.md
+     Como resolver erro de caminho com acentos
+   
+   - COMO_ABRIR_PROJETO.md
+     Guia detalhado para abrir o projeto
+   
+   - SOLUCAO_ERRO_GRADLE.md
+     Soluções para erros de compilação
+   
+   - RELATORIO_CORRECOES.md
+     Lista de todas as correções aplicadas
+   
+   - mover_projeto.bat
+     Script para mover para caminho válido
+   
+   - limpar_gradle_cache.bat
+     Script para limpar cache do Gradle
+
+
+5. CONFIGURAÇÃO DO APPWRITE
+   -------------------------
+   
+   Endpoint: https://appwrite.hugetower.cloud/v1
+   Project ID: 691e407c0036fe1c7f17
+   Database ID: 69236f45003447bc5844
+   
+   Coleções:
+   - fornecedor: 69236f93001828d82b6f
+   - cliente: 69236f5200282814eb3c
+
+
+6. VERIFICAÇÃO RÁPIDA
+   -------------------
+   
+   Após abrir o projeto, verifique se vê no painel esquerdo:
+   
+   ✓ Pasta "app"
+   ✓ Pasta "gradle"
+   ✓ Ficheiro "build.gradle.kts"
+   ✓ Ficheiro "settings.gradle.kts"
+   
+   Se NÃO vir estes itens, fechou e reabra seguindo o passo 1.
+
+
+7. COMPILAR O PROJETO
+   -------------------
+   
+   Após abrir corretamente:
+   
+   a) File → Sync Project with Gradle Files
+   b) Build → Rebuild Project
+   c) Aguarde a compilação
+
+
+8. SUPORTE
+   --------
+   
+   Se tiver problemas:
+   
+   1. Verifique se o caminho NÃO tem acentos
+   2. Consulte SOLUCAO_CAMINHO_INVALIDO.md
+   3. Consulte COMO_ABRIR_PROJETO.md
+   4. Execute limpar_gradle_cache.bat
+   5. Tente abrir como Administrador
+   6. Verifique SOLUCAO_ERRO_GRADLE.md
+
+
+=====================================
+   TODAS AS CORREÇÕES JÁ FORAM
+   APLICADAS - CÓDIGO ESTÁ CORRETO!
+=====================================
+
+Versão: Final
+Data: 29 Novembro 2025
