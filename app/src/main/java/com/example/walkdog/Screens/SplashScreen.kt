@@ -1,4 +1,4 @@
-package com.example.walkdog
+package com.example.walkdog.Screens
 
 import androidx.compose.animation.*
 import androidx.compose.animation.core.tween
@@ -10,8 +10,8 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.scale
 import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
@@ -20,6 +20,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.delay
 
+// IMPORT CORRETO DO R
+import com.example.walkdog.R
+
 @Composable
 fun SplashScreen(onTimeout: () -> Unit) {
 
@@ -27,7 +30,7 @@ fun SplashScreen(onTimeout: () -> Unit) {
 
     LaunchedEffect(Unit) {
         visible = true
-        delay(2800)
+        delay(5000)
         onTimeout()
     }
 

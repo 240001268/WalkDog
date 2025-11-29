@@ -9,7 +9,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.walkdog.componentes.LogotipoComponent
+import com.example.walkdog.service.AppwriteService
+import com.example.walkdog.viewmodel.LoginViewModel
+import com.example.walkdog.viewmodel.LoginViewModelFactory
 
 @Composable
 fun LoginPage(
@@ -18,58 +22,72 @@ fun LoginPage(
     onRegistarCliente: () -> Unit,
     onRegistarFornecedor: () -> Unit
 ) {
+    // ✅ agora seguro porque MainActivity já inicializou AppwriteService
+    val viewModel: LoginViewModel = viewModel(
+        factory = LoginViewModelFactory(AppwriteService)
+    )
+
+    val state by viewModel.state.collectAsState()
+
     var email by remember { mutableStateOf("") }
     var senha by remember { mutableStateOf("") }
+
+    LaunchedEffect(state.success) {
+        if (state.success) {
+            if (email.contains("fornecedor")) onEntrarFornecedor()
+            else onEntrarCliente()
+        }
+    }
 
     Column(
         modifier = Modifier
             .fillMaxSize()
             .background(Color.White)
-            .padding(16.dp),
-        verticalArrangement = Arrangement.spacedBy(20.dp),
-        horizontalAlignment = Alignment.CenterHorizontally
+            .padding(20.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(18.dp)
     ) {
-        // LOGO
         LogotipoComponent()
-
-        // EMAIL
         TextField(
             value = email,
             onValueChange = { email = it },
             label = { Text("Email") },
             modifier = Modifier.fillMaxWidth()
         )
-
-        // SENHA
         TextField(
             value = senha,
             onValueChange = { senha = it },
             label = { Text("Senha") },
             modifier = Modifier.fillMaxWidth()
         )
-
-        // BOTÃO ENTRAR CLIENTE
+        if (state.error != null) {
+            Text(text = state.error ?: "", color = Color.Red, modifier = Modifier.padding(4.dp))
+        }
+        if (state.loading) {
+            CircularProgressIndicator()
+        }
         Button(
-            onClick = onEntrarCliente,
-            modifier = Modifier.fillMaxWidth()
+            onClick = { viewModel.login(email, senha) },
+            modifier = Modifier.fillMaxWidth(),
+            enabled = !state.loading
         ) { Text("Entrar como Cliente") }
 
-        // BOTÃO ENTRAR FORNECEDOR
         Button(
-            onClick = onEntrarFornecedor,
-            modifier = Modifier.fillMaxWidth()
+            onClick = { viewModel.login(email, senha) },
+            modifier = Modifier.fillMaxWidth(),
+            enabled = !state.loading
         ) { Text("Entrar como Fornecedor") }
 
-        // REGISTAR CLIENTE
         OutlinedButton(
             onClick = onRegistarCliente,
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier.fillMaxWidth(),
+            enabled = !state.loading
         ) { Text("Registar Cliente") }
 
-        // REGISTAR FORNECEDOR
         OutlinedButton(
             onClick = onRegistarFornecedor,
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier.fillMaxWidth(),
+            enabled = !state.loading
         ) { Text("Registar Fornecedor") }
     }
 }
@@ -84,5 +102,3 @@ fun PreviewLoginPage() {
         onRegistarFornecedor = {}
     )
 }
-
-

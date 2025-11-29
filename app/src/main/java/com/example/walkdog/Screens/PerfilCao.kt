@@ -1,4 +1,4 @@
-package com.example.perfilcao
+package com.example.walkdog.Screens
 
 import InfoRow
 import InfoSection
