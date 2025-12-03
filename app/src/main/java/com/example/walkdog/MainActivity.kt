@@ -6,12 +6,15 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.example.walkdog.Screens.*
 import com.example.walkdog.service.AppwriteService
 import com.example.walkdog.ui.theme.WalkDogTheme
+import com.example.walkdog.viewmodel.LoginViewModel
+import com.example.walkdog.viewmodel.LoginViewModelFactory
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -26,6 +29,9 @@ class MainActivity : ComponentActivity() {
             WalkDogTheme {
                 Surface(color = MaterialTheme.colorScheme.background) {
                     val navController = rememberNavController()
+                    val viewModel: LoginViewModel = viewModel(
+                        factory = LoginViewModelFactory(AppwriteService)
+                    )
 
                     NavHost(
                         navController = navController,
@@ -51,12 +57,12 @@ class MainActivity : ComponentActivity() {
                                 onRegistarCao = { navController.navigate("formulario_cao") },
                                 onBuscarFornecedor = { navController.navigate("buscar_fornecedores") },
                                 onOutro = { navController.navigate("outro") },
-                                onBackClick = { navController.popBackStack() }
+                                onBackClick = { viewModel.logout(navController) }
                             )
                         }
                         composable("perfil_fornecedor") {
                             PerfilFornecedorScreen(
-                                onBackClick = { navController.popBackStack() },
+                                onBackClick = { viewModel.logout(navController) },
                                 onSaveClick = { navController.navigate("login") }
                             )
                         }

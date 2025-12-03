@@ -1,7 +1,9 @@
 package com.example.walkdog.viewmodel
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import androidx.navigation.NavController
 import com.example.walkdog.service.AppwriteService
 import io.appwrite.exceptions.AppwriteException
 import io.appwrite.ID                      // ✅ importar ID
@@ -12,7 +14,8 @@ import kotlinx.coroutines.launch
 data class LoginUiState(
     val loading: Boolean = false,
     val error: String? = null,
-    val success: Boolean = false
+    val success: Boolean = false,
+    val route: String? = null
 )
 
 class LoginViewModel(
@@ -22,7 +25,7 @@ class LoginViewModel(
     private val _state = MutableStateFlow(LoginUiState())
     val state: StateFlow<LoginUiState> = _state
 
-    fun login(email: String, password: String) {
+    fun login(email: String, password: String, redirectRoute: String) {
         viewModelScope.launch {
             try {
                 _state.value = LoginUiState(loading = true)
@@ -33,9 +36,10 @@ class LoginViewModel(
                     throw IllegalStateException("AppwriteService não inicializado.")
                 }
 
-                account.createEmailPasswordSession(email, password)
-
                 _state.value = LoginUiState(success = true)
+
+                account.createEmailPasswordSession(email, password)
+                _state.value = LoginUiState(route = redirectRoute)
 
             } catch (e: AppwriteException) {
                 e.printStackTrace()
@@ -43,6 +47,17 @@ class LoginViewModel(
             } catch (e: Exception) {
                 e.printStackTrace()
                 _state.value = LoginUiState(error = e.message ?: "Erro desconhecido")
+            }
+        }
+    }
+
+    fun logout(navController: NavController) {
+        viewModelScope.launch {
+            try {
+                appwrite.account.deleteSession("current")
+                navController.navigate("login")
+            } catch (ex: Exception) {
+                ex.message?.let { Log.e("Teste", it) }
             }
         }
     }

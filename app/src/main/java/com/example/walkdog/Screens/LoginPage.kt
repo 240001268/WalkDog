@@ -10,6 +10,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavController
+import androidx.navigation.compose.rememberNavController
 import com.example.walkdog.componentes.LogotipoComponent
 import com.example.walkdog.service.AppwriteService
 import com.example.walkdog.viewmodel.LoginViewModel
@@ -20,12 +22,15 @@ fun LoginPage(
     onEntrarCliente: () -> Unit,
     onEntrarFornecedor: () -> Unit,
     onRegistarCliente: () -> Unit,
-    onRegistarFornecedor: () -> Unit
+    onRegistarFornecedor: () -> Unit,
+    navController: NavController = rememberNavController()
 ) {
     // ✅ agora seguro porque MainActivity já inicializou AppwriteService
     val viewModel: LoginViewModel = viewModel(
         factory = LoginViewModelFactory(AppwriteService)
     )
+
+    val navController = rememberNavController()
 
     val state by viewModel.state.collectAsState()
 
@@ -33,10 +38,8 @@ fun LoginPage(
     var senha by remember { mutableStateOf("") }
 
     LaunchedEffect(state.success) {
-        if (state.success) {
-            if (email.contains("fornecedor")) onEntrarFornecedor()
-            else onEntrarCliente()
-        }
+        if (state.route == "cliente") onEntrarCliente()
+        if (state.route == "fornecedor") onEntrarFornecedor()
     }
 
     Column(
@@ -67,13 +70,13 @@ fun LoginPage(
             CircularProgressIndicator()
         }
         Button(
-            onClick = { viewModel.login(email, senha) },
+            onClick = { viewModel.login(email, senha, "cliente") },
             modifier = Modifier.fillMaxWidth(),
             enabled = !state.loading
         ) { Text("Entrar como Cliente") }
 
         Button(
-            onClick = { viewModel.login(email, senha) },
+            onClick = { viewModel.login(email, senha, "fornecedor") },
             modifier = Modifier.fillMaxWidth(),
             enabled = !state.loading
         ) { Text("Entrar como Fornecedor") }
