@@ -10,8 +10,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
-import androidx.navigation.NavController
-import androidx.navigation.compose.rememberNavController
 import com.example.walkdog.componentes.LogotipoComponent
 import com.example.walkdog.service.AppwriteService
 import com.example.walkdog.viewmodel.LoginViewModel
@@ -23,14 +21,11 @@ fun LoginPage(
     onEntrarFornecedor: () -> Unit,
     onRegistarCliente: () -> Unit,
     onRegistarFornecedor: () -> Unit,
-    navController: NavController = rememberNavController()
 ) {
     // ✅ agora seguro porque MainActivity já inicializou AppwriteService
     val viewModel: LoginViewModel = viewModel(
         factory = LoginViewModelFactory(AppwriteService)
     )
-
-    val navController = rememberNavController()
 
     val state by viewModel.state.collectAsState()
 

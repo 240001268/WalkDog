@@ -1,49 +1,46 @@
 package com.example.walkdog.Screens
 
-import InfoRow
-import InfoSection
-import StatItem
-import StatsGrid
-import android.net.Uri
-import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.contract.ActivityResultContracts
+import InfoCard
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.automirrored.filled.DirectionsWalk
-import androidx.compose.material.icons.filled.*
-import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.tooling.preview.Preview
 import coil.compose.rememberAsyncImagePainter
-import com.example.walkdog.R
+import com.example.walkdog.model.Cao
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 
-@Preview
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun PerfilCaoScreen(onBackClick: () -> Unit = {}) {
+fun PerfilCaoScreen(
+    cao: Cao,
+    onBackClick: () -> Unit = {}
+) {
 
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Rex", color = Color.White) },
+                title = {
+                    Text(
+                        cao.nome,
+                        fontSize = 20.sp,
+                        color = Color.White,
+                        fontWeight = FontWeight.Bold
+                    )
+                },
                 navigationIcon = {
                     IconButton(onClick = onBackClick) {
                         Icon(
@@ -53,92 +50,76 @@ fun PerfilCaoScreen(onBackClick: () -> Unit = {}) {
                         )
                     }
                 },
-                actions = {
-                    IconButton(onClick = { }) {
-                        Icon(
-                            Icons.Default.Delete,
-                            contentDescription = "Apagar",
-                            tint = Color.White
-                        )
-                    }
-                },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = Color(0xFF7B42F6)
+                    containerColor = Color(0xFF6A1B9A)
                 )
             )
         }
     ) { padding ->
 
-        Column(
+        LazyColumn(
             modifier = Modifier
                 .padding(padding)
-                .fillMaxSize()
-                .background(Color(0xFFF5F5F5)),
-            horizontalAlignment = Alignment.CenterHorizontally
+                .padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(20.dp)
         ) {
 
-            Spacer(Modifier.height(20.dp))
-
-            // 🐶 Avatar
-            Box(
-                modifier = Modifier
-                    .size(140.dp)
-                    .clip(CircleShape)
-                    .background(Color(0xFF7B42F6)),
-                contentAlignment = Alignment.Center
-            ) {
-                Image(
-                    painter = painterResource(id = R.drawable.carlos),
-                    contentDescription = "Dog Avatar",
-                    modifier = Modifier.size(90.dp)
-                )
+            item {
+                Box(
+                    modifier = Modifier
+                        .size(140.dp)
+                        .clip(CircleShape)
+                        .background(Color(0xFFEDE7F6)),
+                    contentAlignment = Alignment.Center
+                ) {
+                    if (cao.fotoUrl != null) {
+                        Image(
+                            painter = rememberAsyncImagePainter(cao.fotoUrl),
+                            contentDescription = "Foto do cão",
+                            modifier = Modifier.fillMaxSize(),
+                            contentScale = ContentScale.Crop
+                        )
+                    } else {
+                        Text("Sem Foto", color = Color.Gray)
+                    }
+                }
             }
 
-            Spacer(Modifier.height(20.dp))
-
-            // 📊 Estatísticas
-            StatsGrid(
-                stats = listOf(
-                    StatItem(Icons.Default.DirectionsWalk, "12", "Total"),
-                    StatItem(Icons.Default.CheckCircle, "8", "Concluídos"),
-                    StatItem(Icons.Default.Place, "24,5 km", "Distância"),
-                    StatItem(Icons.Default.AccessTime, "180 min", "Duração")
-                )
-            )
-
-            Spacer(Modifier.height(16.dp))
-
-            // 🐕 Informações do Cão
-            InfoSection(
-                title = "Informações do Cão",
-                icon = Icons.Default.Pets,
-                content = {
-                    InfoRow("Nome:", "Rex")
-                    InfoRow("Raça:", "Labrador")
-                    InfoRow("Morada:", "")
-                    InfoRow("Localidade:", "")
+            item {
+                InfoCard(title = "Informações do Cão") {
+                    Text("Raça: ${cao.raca}")
+                    Text("Porte: ${cao.porte}")
+                    Text("Peso: ${cao.peso} kg")
+                    Text("Localidade: ${cao.localidade}")
                 }
-            )
+            }
 
-            Spacer(Modifier.height(8.dp))
-
-            // 👤 Informações do Tutor
-            InfoSection(
-                title = "Informações do Tutor",
-                icon = Icons.Default.Person,
-                content = {},
-                /*
-                trailing = {
-                    FloatingActionButton(
-                        onClick = {},
-                        containerColor = Color(0xFF7B42F6),
-                        shape = CircleShape,
-                        modifier = Modifier.size(50.dp)
-                    ) {
-                        Icon(Icons.Default.Add, "Adicionar", tint = Color.White)
-                    }
-                }*/
-            )
+            item {
+                InfoCard(title = "Informações do Dono") {
+                    Text("Nome: ${cao.nomeDono}")
+                    Text("Email: ${cao.emailDono}")
+                    Text("Telefone: ${cao.telefoneDono}")
+                    Text("Localidade: ${cao.localidadeDono}")
+                }
+            }
         }
     }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun PreviewPerfilCaoScreen() {
+    PerfilCaoScreen(
+        cao = Cao(
+            nome = "Rex",
+            raca = "Labrador",
+            porte = "Grande",
+            peso = "32",
+            localidade = "Lisboa",
+            nomeDono = "João Silva",
+            emailDono = "joao@gmail.com",
+            telefoneDono = "910000000",
+            localidadeDono = "Lisboa"
+        )
+    )
 }

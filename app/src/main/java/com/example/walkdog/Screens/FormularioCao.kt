@@ -9,6 +9,7 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
@@ -18,20 +19,18 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.Alignment
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
 import coil.compose.rememberAsyncImagePainter
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-@Preview
 fun FormularioCaoScreen(onBackClick: () -> Unit = {}) {
 
-    // Estados
     var nomeCao by remember { mutableStateOf("") }
     var raca by remember { mutableStateOf("") }
     var porte by remember { mutableStateOf("") }
@@ -43,38 +42,47 @@ fun FormularioCaoScreen(onBackClick: () -> Unit = {}) {
     var telefone by remember { mutableStateOf("") }
     var localidadeDono by remember { mutableStateOf("") }
 
-    var profileImageUri by remember { mutableStateOf<Uri?>(null) }
+    var fotoUri by remember { mutableStateOf<Uri?>(null) }
 
     val launcher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.GetContent()
-    ) { uri: Uri? ->
-        profileImageUri = uri
+        ActivityResultContracts.GetContent()
+    ) { uri ->
+        fotoUri = uri
     }
 
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Perfil do Cão", color = Color.White) },
+                title = {
+                    Text(
+                        "Adicionar Cão",
+                        color = Color.White,
+                        fontSize = 20.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+                },
                 navigationIcon = {
                     IconButton(onClick = onBackClick) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = "Voltar", tint = Color.White)
+                        Icon(
+                            Icons.AutoMirrored.Filled.ArrowBack,
+                            contentDescription = "Voltar",
+                            tint = Color.White
+                        )
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(Color(0xFF6A1B9A))
             )
         }
-    ) { paddingValues ->
+    ) { pad ->
 
         LazyColumn(
             modifier = Modifier
-                .fillMaxSize()
-                .padding(paddingValues)
+                .padding(pad)
                 .padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
 
             item {
-                // Foto do Cão
                 Box(
                     modifier = Modifier
                         .size(120.dp)
@@ -82,76 +90,56 @@ fun FormularioCaoScreen(onBackClick: () -> Unit = {}) {
                         .clickable { launcher.launch("image/*") },
                     contentAlignment = Alignment.Center
                 ) {
-                    if (profileImageUri != null) {
+                    if (fotoUri != null) {
                         Image(
-                            painter = rememberAsyncImagePainter(profileImageUri),
-                            contentDescription = "Foto do Cão",
+                            painter = rememberAsyncImagePainter(fotoUri),
+                            contentDescription = "Foto do cão",
                             modifier = Modifier.fillMaxSize(),
                             contentScale = ContentScale.Crop
                         )
                     } else {
-                        Text("Adicionar Foto", color = Color.Gray, fontSize = 14.sp)
+                        Text("Adicionar Foto", fontSize = 14.sp, color = Color.Gray)
                     }
                 }
             }
 
             item {
-                // ➤ Informações do Cão (Campos atualizados)
                 InfoCard(title = "Informações do Cão") {
-
                     CustomField("Nome", nomeCao) { nomeCao = it }
                     CustomField("Raça", raca) { raca = it }
-                    CustomField("Porte (Pequeno/Médio/Grande)", porte) { porte = it }
-
-                    CustomField(
-                        label = "Peso (kg)",
-                        value = peso,
-                        keyboard = KeyboardType.Number
-                    ) { peso = it }
-
-                    // ❗ Campos removidos:
-                    // - Morada
-                    // - Código Postal
-
+                    CustomField("Porte", porte) { porte = it }
+                    CustomField("Peso (kg)", peso, keyboard = KeyboardType.Number) { peso = it }
                     CustomField("Localidade", localidadeCao) { localidadeCao = it }
                 }
             }
 
             item {
-                // ➤ Informações do Dono (inalterado)
                 InfoCard(title = "Informações do Dono") {
-
                     CustomField("Nome", nomeDono) { nomeDono = it }
-
-                    CustomField(
-                        label = "Email",
-                        value = email,
-                        keyboard = KeyboardType.Email
-                    ) { email = it }
-
-                    CustomField(
-                        label = "Telefone",
-                        value = telefone,
-                        keyboard = KeyboardType.Phone
-                    ) { telefone = it }
-
+                    CustomField("Email", email, keyboard = KeyboardType.Email) { email = it }
+                    CustomField("Telefone", telefone, keyboard = KeyboardType.Phone) { telefone = it }
                     CustomField("Localidade", localidadeDono) { localidadeDono = it }
                 }
             }
 
-
             item {
-                Button (
-                    onClick = { /* ação de adicionar cão */ },
+                Button(
+                    onClick = { /* TODO salvar no Appwrite */ },
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(56.dp),
+                        .height(55.dp),
                     shape = RoundedCornerShape(12.dp),
-                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF6A1B9A))
+                    colors = ButtonDefaults.buttonColors(Color(0xFF6A1B9A))
                 ) {
-                    Text("Adicionar Cão", color = Color.White, fontSize = 18.sp)
+                    Text("Adicionar Cão", fontSize = 18.sp, color = Color.White)
                 }
             }
         }
     }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun PreviewFormularioCaoScreen() {
+    FormularioCaoScreen()
 }

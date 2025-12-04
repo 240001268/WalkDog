@@ -1,33 +1,63 @@
 package com.example.walkdog.Screens
 
-import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.walkdog.R
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun MarcarPasseioScreen(onBackClick: () -> Unit = {}) {
+fun MarcarPasseioScreen(
+    tipoInicial: String = "",
+    minutosIniciais: Int = 0,
+    onBackClick: () -> Unit = {},
+    dogs: List<String> = listOf("Rex", "Bobby", "Luna")
+) {
 
-    var zona by remember { mutableStateOf("Centro") }
-    var horarioInicio by remember { mutableStateOf("17:00") }
-    var horarioFim by remember { mutableStateOf("17:30") }
+    // -------------------- ESTADOS CORRIGIDOS --------------------
+
+    var selectedDog by remember { mutableStateOf("") }
+    var localidade by remember { mutableStateOf("") }
+    var horaInicio by remember { mutableStateOf("") }
+
+    // duração (Rápido / Longo)
+    var duracao by remember { mutableStateOf(tipoInicial.ifEmpty { "Rápido" }) }
+
+    // tempo selecionado (30,60,90,120)
+    var tempoSelecionado by remember {
+        mutableStateOf(if (minutosIniciais > 0) "minutosIniciais min" else "")
+    }
+
+    // tipo de passeio (Individual / Grupo)
+    var tipoPasseio by remember { mutableStateOf("Individual") }
+
+    // -------------------- TABELA DE PREÇOS --------------------
+
+    val opcoesPrecoRapido = mapOf(
+        "30 min" to "12€",
+        "60 min" to "20€"
+    )
+
+    val opcoesPrecoLongo = mapOf(
+        "90 min" to "30€",
+        "120 min" to "45€"
+    )
+
+    val tempoOptions =
+        if (duracao == "Rápido") opcoesPrecoRapido else opcoesPrecoLongo
+
+    val precoFinal = tempoOptions[tempoSelecionado] ?: "--"
+
+    // -------------------- UI --------------------
 
     Scaffold(
         topBar = {
@@ -43,7 +73,7 @@ fun MarcarPasseioScreen(onBackClick: () -> Unit = {}) {
                 navigationIcon = {
                     IconButton(onClick = onBackClick) {
                         Icon(
-                            Icons.Default.ArrowBack,
+                            Icons.AutoMirrored.Filled.ArrowBack,
                             contentDescription = "Voltar",
                             tint = Color.White
                         )
@@ -60,119 +90,188 @@ fun MarcarPasseioScreen(onBackClick: () -> Unit = {}) {
             modifier = Modifier
                 .padding(padding)
                 .padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(20.dp)
+            verticalArrangement = Arrangement.spacedBy(18.dp)
         ) {
 
-            // --- CÃO ---
-            Card(
-                modifier = Modifier.fillMaxWidth(),
-                colors = CardDefaults.cardColors(containerColor = Color.White),
-                shape = RoundedCornerShape(16.dp),
-                elevation = CardDefaults.cardElevation(defaultElevation = 3.dp)
+            // ------------------ SELECIONAR CÃO ------------------
+            var expandedDog by remember { mutableStateOf(false) }
+
+            ExposedDropdownMenuBox(
+                expanded = expandedDog,
+                onExpandedChange = { expandedDog = !expandedDog }
             ) {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier.padding(16.dp)
+                OutlinedTextField(
+                    value = selectedDog,
+                    onValueChange = {},
+                    readOnly = true,
+                    label = { Text("Selecionar Cão") },
+                    trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expandedDog) },
+                    modifier = Modifier
+                        .fillMaxWidth(),
+                    shape = RoundedCornerShape(12.dp),
+                )
+                ExposedDropdownMenu(
+                    expanded = expandedDog,
+                    onDismissRequest = { expandedDog = false }
                 ) {
-                    Image(
-                        painter = painterResource(id = R.drawable.dog_rex),
-                        contentDescription = "Foto do cão",
-                        modifier = Modifier
-                            .size(56.dp)
-                            .clip(CircleShape),
-                        contentScale = ContentScale.Crop
-                    )
-                    Spacer(modifier = Modifier.width(12.dp))
-                    Column {
-                        Text("Rex", fontWeight = FontWeight.Bold, fontSize = 17.sp)
-                        Text("Fila — Grande", color = Color.Gray, fontSize = 14.sp)
+                    dogs.forEach {
+                        DropdownMenuItem(
+                            text = { Text(it) },
+                            onClick = {
+                                selectedDog = it
+                                expandedDog = false
+                            }
+                        )
                     }
                 }
             }
 
-            // --- ZONA ---
+            // ------------------ LOCALIDADE ------------------
             OutlinedTextField(
-                value = zona,
-                onValueChange = { zona = it },
-                label = { Text("Zona") },
+                value = localidade,
+                onValueChange = { localidade = it },
+                label = { Text("Localidade") },
                 modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(12.dp),
-                singleLine = true
+                singleLine = true,
+                shape = RoundedCornerShape(12.dp)
             )
 
-            // --- HORÁRIOS ---
-            Row(
-                horizontalArrangement = Arrangement.spacedBy(12.dp),
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                OutlinedTextField(
-                    value = horarioInicio,
-                    onValueChange = { horarioInicio = it },
-                    label = { Text("Início") },
-                    modifier = Modifier.weight(1f),
-                    shape = RoundedCornerShape(12.dp),
-                    singleLine = true
-                )
-                OutlinedTextField(
-                    value = horarioFim,
-                    onValueChange = { horarioFim = it },
-                    label = { Text("Fim") },
-                    modifier = Modifier.weight(1f),
-                    shape = RoundedCornerShape(12.dp),
-                    singleLine = true
-                )
-            }
-
-            // --- PASSEADOR ---
-            Card(
+            // ------------------ HORA ------------------
+            OutlinedTextField(
+                value = horaInicio,
+                onValueChange = { horaInicio = it },
+                label = { Text("Hora Início (ex: 17:00)") },
+                singleLine = true,
                 modifier = Modifier.fillMaxWidth(),
-                colors = CardDefaults.cardColors(containerColor = Color.White),
-                shape = RoundedCornerShape(16.dp),
-                elevation = CardDefaults.cardElevation(defaultElevation = 3.dp)
+                shape = RoundedCornerShape(12.dp)
+            )
+
+            // ------------------ DURAÇÃO ------------------
+            var expandedDuracao by remember { mutableStateOf(false) }
+
+            ExposedDropdownMenuBox(
+                expanded = expandedDuracao,
+                onExpandedChange = { expandedDuracao = !expandedDuracao }
             ) {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier.padding(16.dp)
+                OutlinedTextField(
+                    value = duracao,
+                    onValueChange = {},
+                    readOnly = true,
+                    label = { Text("Duração do Passeio") },
+                    trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expandedDuracao) },
+                    modifier = Modifier
+                        .fillMaxWidth(),
+                    shape = RoundedCornerShape(12.dp)
+                )
+                ExposedDropdownMenu(
+                    expanded = expandedDuracao,
+                    onDismissRequest = { expandedDuracao = false }
                 ) {
-                    Image(
-                        painter = painterResource(id = R.drawable.carlos),
-                        contentDescription = "Foto do fornecedor",
-                        modifier = Modifier
-                            .size(56.dp)
-                            .clip(CircleShape),
-                        contentScale = ContentScale.Crop
-                    )
-                    Spacer(modifier = Modifier.width(12.dp))
-                    Column {
-                        Text("Carlos", fontWeight = FontWeight.Bold, fontSize = 17.sp)
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Text("⭐ 4.9", fontWeight = FontWeight.SemiBold, fontSize = 14.sp)
-                        }
+                    listOf("Rápido", "Longo").forEach {
+                        DropdownMenuItem(
+                            text = { Text(it) },
+                            onClick = {
+                                duracao = it
+                                tempoSelecionado = ""
+                                expandedDuracao = false
+                            }
+                        )
                     }
                 }
             }
 
-            // --- PREÇO + BOTÃO ---
+            // ------------------ TEMPO ------------------
+            var expandedTempo by remember { mutableStateOf(false) }
+
+            ExposedDropdownMenuBox(
+                expanded = expandedTempo,
+                onExpandedChange = { expandedTempo = !expandedTempo }
+            ) {
+                OutlinedTextField(
+                    value = tempoSelecionado,
+                    onValueChange = {},
+                    readOnly = true,
+                    label = { Text("Tempo") },
+                    trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expandedTempo) },
+                    modifier = Modifier
+                       .fillMaxWidth(),
+                    shape = RoundedCornerShape(12.dp)
+                )
+                ExposedDropdownMenu(
+                    expanded = expandedTempo,
+                    onDismissRequest = { expandedTempo = false }
+                ) {
+                    tempoOptions.keys.forEach {
+                        DropdownMenuItem(
+                            text = { Text(it) },
+                            onClick = {
+                                tempoSelecionado = it
+                                expandedTempo = false
+                            }
+                        )
+                    }
+                }
+            }
+
+            // ------------------ TIPO DE PASSEIO ------------------
+            var expandedTipo by remember { mutableStateOf(false) }
+
+            ExposedDropdownMenuBox(
+                expanded = expandedTipo,
+                onExpandedChange = { expandedTipo = !expandedTipo }
+            ) {
+                OutlinedTextField(
+                    value = tipoPasseio,
+                    onValueChange = {},
+                    readOnly = true,
+                    label = { Text("Tipo de Passeio") },
+                    trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expandedTipo) },
+                    modifier = Modifier
+                        .fillMaxWidth(),
+                    shape = RoundedCornerShape(12.dp)
+                )
+                ExposedDropdownMenu(
+                    expanded = expandedTipo,
+                    onDismissRequest = { expandedTipo = false }
+                ) {
+                    listOf("Individual", "Grupo").forEach {
+                        DropdownMenuItem(
+                            text = { Text(it) },
+                            onClick = {
+                                tipoPasseio = it
+                                expandedTipo = false
+                            }
+                        )
+                    }
+                }
+            }
+
+            // ------------------ PREÇO + CONFIRMAR ------------------
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
+
                 Column {
-                    Text("Preço estimado", color = Color.Gray, fontSize = 14.sp)
+                    Text("Preço do Passeio", color = Color.Gray, fontSize = 14.sp)
                     Text(
-                        "€12.50",
-                        fontSize = 22.sp,
+                        precoFinal,
+                        fontSize = 24.sp,
                         fontWeight = FontWeight.Bold,
                         color = Color(0xFF6A1B9A)
                     )
                 }
+
                 Button(
-                    onClick = { /* TODO */ },
+                    onClick = {
+                        // TODO: Gravar no Appwrite
+                    },
+                    enabled = precoFinal != "--",
                     colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF6A1B9A)),
                     shape = RoundedCornerShape(12.dp)
                 ) {
-                    Text("Confirmar & Iniciar", color = Color.White)
+                    Text("Confirmar", color = Color.White)
                 }
             }
         }

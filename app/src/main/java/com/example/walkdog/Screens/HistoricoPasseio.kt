@@ -1,13 +1,11 @@
 package com.example.walkdog.Screens
 
-import androidx.compose.foundation.Image
-
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -18,8 +16,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.ui.res.painterResource
-import com.example.walkdog.R
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -39,7 +35,7 @@ fun HistoricoPasseiosScreen(onBackClick: () -> Unit = {}) {
                 navigationIcon = {
                     IconButton(onClick = onBackClick) {
                         Icon(
-                            Icons.Default.ArrowBack,
+                            Icons.AutoMirrored.Filled.ArrowBack,
                             contentDescription = "Voltar",
                             tint = Color.White
                         )
@@ -59,26 +55,26 @@ fun HistoricoPasseiosScreen(onBackClick: () -> Unit = {}) {
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
 
-            // Título informativo
             Text(
                 "3 passeio(s) concluído(s)",
                 fontSize = 15.sp,
                 color = Color.DarkGray
             )
 
-            // Lista de passeios
             PasseioHistoricoItem(
                 nome = "João Silva",
                 data = "12 Fev 2025",
                 duracao = "30 min",
                 avatarColor = Color(0xFF8E67FF)
             )
+
             PasseioHistoricoItem(
                 nome = "Maria Santos",
                 data = "07 Fev 2025",
                 duracao = "45 min",
                 avatarColor = Color(0xFFFF8A65)
             )
+
             PasseioHistoricoItem(
                 nome = "Pedro Costa",
                 data = "03 Fev 2025",
@@ -109,7 +105,7 @@ fun PasseioHistoricoItem(
             verticalAlignment = Alignment.CenterVertically
         ) {
 
-            // Avatar
+            // Avatar simples com inicial do nome
             Box(
                 modifier = Modifier
                     .size(55.dp)
@@ -117,12 +113,11 @@ fun PasseioHistoricoItem(
                     .background(avatarColor),
                 contentAlignment = Alignment.Center
             ) {
-                Image(
-                    painter = painterResource(id = R.drawable.ic_launcher_background),
-                    contentDescription = "Avatar",
-                    modifier = Modifier
-                        .size(40.dp)
-                        .clip(CircleShape)
+                Text(
+                    nome.first().uppercase(),
+                    color = Color.White,
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 22.sp
                 )
             }
 
@@ -133,7 +128,6 @@ fun PasseioHistoricoItem(
                 Text(data, fontSize = 14.sp, color = Color.Gray)
             }
 
-            // Duração
             Text(
                 duracao,
                 fontSize = 14.sp,

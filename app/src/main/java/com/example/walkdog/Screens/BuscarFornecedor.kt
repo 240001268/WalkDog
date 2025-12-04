@@ -1,11 +1,11 @@
 package com.example.walkdog.Screens
 
-import androidx.compose.foundation.*
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -16,57 +16,51 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
 
 
-// ------------------------------------------------------------
-// MODELO DE DADOS — AGORA FORNECEDOR
-// ------------------------------------------------------------
 data class Fornecedor(
     val nome: String,
     val localidade: String,
-    val rating: String,
+    val rating: Float,
     val avatarColor: Color
 )
 
-
-// ------------------------------------------------------------
-// TELA PRINCIPAL — Buscar Fornecedores
-// ------------------------------------------------------------
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun BuscarFornecedoresScreen(
     onBackClick: () -> Unit = {},
-    onVerPerfil: (Fornecedor) -> Unit = {}  // ← Navegação correta
+    onVerPerfil: (Fornecedor) -> Unit = {}
 ) {
 
     val fornecedores = listOf(
-        Fornecedor("João Silva", "Lisboa", "4.8", Color(0xFF8E67FF)),
-        Fornecedor("Maria Santos", "Porto", "4.7", Color(0xFFFF8A65)),
-        Fornecedor("Pedro Costa", "Braga", "4.9", Color(0xFF64B5F6))
+        Fornecedor("João Silva", "Lisboa", 4.8f, Color(0xFF8E67FF)),
+        Fornecedor("Maria Santos", "Porto", 4.7f, Color(0xFFFF8A65)),
+        Fornecedor("Pedro Costa", "Braga", 4.9f, Color(0xFF64B5F6))
     )
+
+    var search by remember { mutableStateOf("") }
+
+    val filtrados = fornecedores.filter {
+        it.nome.contains(search, ignoreCase = true) ||
+                it.localidade.contains(search, ignoreCase = true)
+    }
 
     Scaffold(
         topBar = {
             TopAppBar(
                 title = {
-                    Text(
-                        "Buscar Fornecedores",
-                        color = Color.White,
-                        fontSize = 20.sp,
-                        fontWeight = FontWeight.Bold
-                    )
+                    Text("Buscar Fornecedores", color = Color.White, fontSize = 20.sp)
                 },
                 navigationIcon = {
                     IconButton(onClick = onBackClick) {
                         Icon(
-                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                            Icons.AutoMirrored.Filled.ArrowBack,
                             contentDescription = "Voltar",
                             tint = Color.White
                         )
                     }
                 },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = Color(0xFF6A1B9A))
+                colors = TopAppBarDefaults.topAppBarColors(Color(0xFF6A1B9A))
             )
         }
     ) { padding ->
@@ -75,13 +69,11 @@ fun BuscarFornecedoresScreen(
             modifier = Modifier
                 .padding(padding)
                 .padding(16.dp)
-                .verticalScroll(rememberScrollState())
         ) {
 
-            // 🔍 Campo de busca
             OutlinedTextField(
-                value = "",
-                onValueChange = {},
+                value = search,
+                onValueChange = { search = it },
                 placeholder = { Text("Buscar por nome ou localidade...") },
                 leadingIcon = { Icon(Icons.Default.Search, contentDescription = null) },
                 modifier = Modifier.fillMaxWidth(),
@@ -90,49 +82,21 @@ fun BuscarFornecedoresScreen(
 
             Spacer(Modifier.height(16.dp))
 
-            Text("Filtros", fontWeight = FontWeight.Medium, fontSize = 16.sp)
-
-            Spacer(Modifier.height(12.dp))
-
-            Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                FilterChip(text = "Zona", selected = false)
-                FilterChip(text = "Avaliação", selected = false)
-                FilterChip(text = "Serviços", selected = false)
-            }
+            Text(
+                "${filtrados.size} fornecedor(es) encontrado(s)",
+                fontSize = 14.sp,
+                color = Color.DarkGray
+            )
 
             Spacer(Modifier.height(16.dp))
 
-            Text("${fornecedores.size} fornecedor(es) encontrado(s)", fontWeight = FontWeight.Light)
-
-            Spacer(Modifier.height(16.dp))
-
-            fornecedores.forEach { fornecedor ->
+            filtrados.forEach { fornecedor ->
                 FornecedorCard(
                     fornecedor = fornecedor,
-                    onClick = { onVerPerfil(fornecedor) } // ← Navegação correta
+                    onClick = { onVerPerfil(fornecedor) }
                 )
             }
         }
-    }
-}
-
-
-// ------------------------------------------------------------
-// COMPONENTES
-// ------------------------------------------------------------
-@Composable
-fun FilterChip(text: String, selected: Boolean) {
-    Surface(
-        shape = RoundedCornerShape(30.dp),
-        color = if (selected) Color(0xFF6A1B9A) else Color(0xFFEDE7F6),
-        tonalElevation = 2.dp
-    ) {
-        Text(
-            text,
-            modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
-            color = if (selected) Color.White else Color.Black,
-            fontSize = 14.sp
-        )
     }
 }
 
@@ -142,54 +106,54 @@ fun FornecedorCard(
     onClick: () -> Unit
 ) {
     Card(
-        shape = RoundedCornerShape(16.dp),
         modifier = Modifier
             .fillMaxWidth()
-            .padding(vertical = 8.dp),
-        colors = CardDefaults.cardColors(containerColor = Color(0xFFF9F9F9))
+            .padding(vertical = 6.dp),
+        shape = RoundedCornerShape(16.dp),
+        colors = CardDefaults.cardColors(Color.White),
+        elevation = CardDefaults.cardElevation(3.dp)
     ) {
         Row(
             modifier = Modifier.padding(16.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
 
-            // Avatar circular
             Box(
                 modifier = Modifier
-                    .size(50.dp)
+                    .size(55.dp)
                     .clip(CircleShape)
-                    .background(fornecedor.avatarColor)
-            )
+                    .background(fornecedor.avatarColor),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    fornecedor.nome.first().uppercase(),
+                    color = Color.White,
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 20.sp
+                )
+            }
 
             Spacer(Modifier.width(16.dp))
 
             Column(modifier = Modifier.weight(1f)) {
-                Text(fornecedor.nome, fontWeight = FontWeight.Bold, fontSize = 17.sp)
+                Text(fornecedor.nome, fontSize = 18.sp, fontWeight = FontWeight.Bold)
                 Text("⭐ ${fornecedor.rating}", fontSize = 14.sp)
                 Text(fornecedor.localidade, fontSize = 14.sp, color = Color.Gray)
             }
 
             Button(
                 onClick = onClick,
-                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF6A1B9A)),
-                shape = RoundedCornerShape(10.dp)
+                colors = ButtonDefaults.buttonColors(Color(0xFF6A1B9A)),
+                shape = RoundedCornerShape(12.dp)
             ) {
-                Text("Ver Perfil Completo", color = Color.White, fontSize = 13.sp)
+                Text("Ver Perfil", color = Color.White)
             }
         }
     }
 }
 
-
-// ------------------------------------------------------------
-// PREVIEW APRIMORADO
-// ------------------------------------------------------------
-@Preview(showBackground = true, showSystemUi = true)
+@Preview(showBackground = true)
 @Composable
-fun PreviewBuscarFornecedoresScreen() {
-    BuscarFornecedoresScreen(
-        onBackClick = {},
-        onVerPerfil = {}
-    )
+fun PreviewBuscar() {
+    BuscarFornecedoresScreen()
 }
-

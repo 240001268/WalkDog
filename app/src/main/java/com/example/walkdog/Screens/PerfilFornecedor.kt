@@ -1,63 +1,60 @@
 package com.example.walkdog.Screens
 
-import androidx.compose.foundation.Image
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.walkdog.R
 
-// -----------------------------------------------------------
-// DATA CLASS DO SERVIÇO
-// -----------------------------------------------------------
-data class ServicoFornecedor(
+data class PasseioOpcao(
     val titulo: String,
-    val descricao: String,
-    val avatarColor: Color
+    val duracao: Int,
+    val preco: Int,
+    val tipo: String
 )
 
-// -----------------------------------------------------------
-// TELA PRINCIPAL — PERFIL DO FORNECEDOR
-// -----------------------------------------------------------
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PerfilFornecedorScreen(
-    onBackClick: () -> Unit,
-    onContactClick: () -> Unit = {},
-    onScheduleClick: () -> Unit = {},
-    onSaveClick: () -> Unit
+    nomeFornecedor: String,
+    localidadeFornecedor: String,
+    ratingFornecedor: String,
+    onBackClick: () -> Unit = {},
+    onScheduleClick: (String, Int, Int) -> Unit
 ) {
+    // Garante que o botão físico de voltar funciona
+    BackHandler { onBackClick() }
 
-    // Lista dinâmica de serviços (mock)
-    var servicos by remember {
-        mutableStateOf(
-            listOf(
-                ServicoFornecedor("Passeio Simples", "30 minutos de passeio", Color(0xFFFF8A65)),
-                ServicoFornecedor("Passeio Premium", "1 hora de passeio + exercícios", Color(0xFF64B5F6)),
-                ServicoFornecedor("Adestramento Básico", "Sessão de 45 minutos", Color(0xFF8E67FF))
-            )
-        )
-    }
+    val passeios = listOf(
+        PasseioOpcao("Passeio Rápido", 30, 12, "Rápido"),
+        PasseioOpcao("Passeio Rápido", 60, 20, "Rápido"),
+        PasseioOpcao("Passeio Longo", 90, 30, "Longo"),
+        PasseioOpcao("Passeio Longo", 120, 45, "Longo")
+    )
 
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Perfil do Fornecedor", color = Color.White) },
+                title = {
+                    Text(
+                        "Perfil do Fornecedor",
+                        color = Color.White,
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 20.sp
+                    )
+                },
                 navigationIcon = {
                     IconButton(onClick = onBackClick) {
                         Icon(
@@ -67,8 +64,8 @@ fun PerfilFornecedorScreen(
                         )
                     }
                 },
-                colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
-                    containerColor = Color(0xFF6A1B9A)
+                colors = TopAppBarDefaults.topAppBarColors(
+                    Color(0xFF6A1B9A)
                 )
             )
         }
@@ -81,160 +78,85 @@ fun PerfilFornecedorScreen(
             verticalArrangement = Arrangement.spacedBy(20.dp)
         ) {
 
-            // PERFIL DO FORNECEDOR
-            PerfilCard(
-                nome = "Nome do Fornecedor",
-                descricao = "Profissional | Lisboa",
-                avatarColor = Color(0xFF8E67FF)
-            )
-
-            // TÍTULO LISTA
-            Text(
-                text = "Serviços Oferecidos",
-                color = Color.Black,
-                fontWeight = FontWeight.Bold,
-                fontSize = 20.sp
-            )
-
-            // LISTA DE SERVIÇOS
-            LazyColumn(
+            Card(
                 modifier = Modifier.fillMaxWidth(),
-                verticalArrangement = Arrangement.spacedBy(12.dp),
-                contentPadding = PaddingValues(bottom = 16.dp)
+                shape = RoundedCornerShape(16.dp),
+                colors = CardDefaults.cardColors(Color.White),
+                elevation = CardDefaults.cardElevation(4.dp)
             ) {
-                items(servicos) { servico ->
-                    PerfilCardComAcoesFornecedor(
-                        servico = servico,
-                        onEditar = { /* ação futura */ },
-                        onRemover = {
-                            servicos = servicos.filter { it != servico }
-                        }
+                Row(
+                    modifier = Modifier.padding(18.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .size(70.dp)
+                            .clip(CircleShape)
+                            .background(Color(0xFF8E67FF))
                     )
+
+                    Spacer(modifier = Modifier.width(16.dp))
+
+                    Column {
+                        Text(nomeFornecedor, fontWeight = FontWeight.Bold, fontSize = 20.sp)
+                        Text(localidadeFornecedor, fontSize = 14.sp, color = Color.Gray)
+                        Text("⭐ $ratingFornecedor", fontSize = 14.sp)
+                    }
                 }
             }
-        }
-    }
-}
 
-// -----------------------------------------------------------
-// CARTÃO DO PERFIL DO FORNECEDOR (TOPO)
-// -----------------------------------------------------------
-@Composable
-fun PerfilCard(nome: String, descricao: String, avatarColor: Color) {
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(containerColor = Color.White),
-        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
-    ) {
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier.padding(16.dp)
-        ) {
+            Text("Passeios Disponíveis", fontSize = 20.sp, fontWeight = FontWeight.Bold)
 
-            // Avatar
-            Box(
-                modifier = Modifier
-                    .size(70.dp)
-                    .clip(CircleShape)
-                    .background(avatarColor)
-            )
-
-            Spacer(modifier = Modifier.width(16.dp))
-
-            Column {
-                Text(nome, fontWeight = FontWeight.Bold, fontSize = 20.sp)
-                Text(descricao, fontSize = 14.sp, color = Color.Gray)
+            passeios.forEach { passeio ->
+                PasseioFornecedorCard(
+                    passeio = passeio,
+                    onAgendar = { onScheduleClick(passeio.tipo, passeio.duracao, passeio.preco) }
+                )
             }
         }
     }
 }
 
-// -----------------------------------------------------------
-// CARD DO SERVIÇO COM EDITAR E REMOVER
-// -----------------------------------------------------------
 @Composable
-fun PerfilCardComAcoesFornecedor(
-    servico: ServicoFornecedor,
-    onEditar: () -> Unit,
-    onRemover: () -> Unit
+fun PasseioFornecedorCard(
+    passeio: PasseioOpcao,
+    onAgendar: () -> Unit
 ) {
     Card(
         modifier = Modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(Color.White),
         shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(containerColor = Color.White),
-        elevation = CardDefaults.cardElevation(defaultElevation = 3.dp)
+        elevation = CardDefaults.cardElevation(3.dp)
     ) {
         Row(
-            verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier
-                .padding(16.dp)
-                .fillMaxWidth()
+            modifier = Modifier.padding(16.dp),
+            verticalAlignment = Alignment.CenterVertically
         ) {
 
-            // Avatar do serviço
-            Box(
-                modifier = Modifier
-                    .size(60.dp)
-                    .clip(CircleShape)
-                    .background(servico.avatarColor),
-                contentAlignment = Alignment.Center
-            ) {
-                Image(
-                    painter = painterResource(id = R.drawable.ic_launcher_background),
-                    contentDescription = "Avatar Serviço",
-                    modifier = Modifier
-                        .size(40.dp)
-                        .clip(CircleShape)
-                )
-            }
-
-            Spacer(modifier = Modifier.width(12.dp))
-
-            // Texto
             Column(modifier = Modifier.weight(1f)) {
-                Text(servico.titulo, fontWeight = FontWeight.Bold, fontSize = 17.sp)
-                Text(servico.descricao, fontSize = 14.sp, color = Color.Gray)
+                Text(passeio.titulo, fontWeight = FontWeight.Bold, fontSize = 18.sp)
+                Text("${passeio.duracao} min", fontSize = 14.sp, color = Color.DarkGray)
+                Text("${passeio.preco}€", fontWeight = FontWeight.Bold, fontSize = 16.sp)
             }
 
-            Spacer(modifier = Modifier.width(8.dp))
-
-            // Botões
-            Row {
-                Button(
-                    onClick = onEditar,
-                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF6A1B9A)),
-                    shape = RoundedCornerShape(12.dp),
-                    contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp)
-                ) {
-                    Text("Editar", color = Color.White, fontSize = 12.sp)
-                }
-
-                Spacer(modifier = Modifier.width(8.dp))
-
-                Button(
-                    onClick = onRemover,
-                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFE53935)),
-                    shape = RoundedCornerShape(12.dp),
-                    contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp)
-                ) {
-                    Text("Remover", color = Color.White, fontSize = 12.sp)
-                }
+            Button(
+                onClick = onAgendar,
+                colors = ButtonDefaults.buttonColors(Color(0xFF6A1B9A)),
+                shape = RoundedCornerShape(12.dp)
+            ) {
+                Text("Agendar", color = Color.White)
             }
         }
     }
 }
 
-// -----------------------------------------------------------
-// PREVIEW
-// -----------------------------------------------------------
-@Preview(showBackground = true, showSystemUi = true)
+@Preview(showBackground = true)
 @Composable
-fun PreviewPerfilFornecedorScreen() {
+fun PreviewPerfilFornecedor() {
     PerfilFornecedorScreen(
-        onBackClick = {},
-        onContactClick = {},
-        onScheduleClick = {},
-        onSaveClick = {}
+        nomeFornecedor = "Carlos Andrade",
+        localidadeFornecedor = "Lisboa",
+        ratingFornecedor = "4.9",
+        onScheduleClick = { _, _, _ -> }
     )
 }
