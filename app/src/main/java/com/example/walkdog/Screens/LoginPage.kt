@@ -7,8 +7,10 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.walkdog.componentes.LogotipoComponent
 import com.example.walkdog.service.AppwriteService
@@ -22,7 +24,6 @@ fun LoginPage(
     onRegistarCliente: () -> Unit,
     onRegistarFornecedor: () -> Unit,
 ) {
-    // ✅ agora seguro porque MainActivity já inicializou AppwriteService
     val viewModel: LoginViewModel = viewModel(
         factory = LoginViewModelFactory(AppwriteService)
     )
@@ -41,52 +42,124 @@ fun LoginPage(
         modifier = Modifier
             .fillMaxSize()
             .background(Color.White)
-            .padding(20.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(18.dp)
+            .padding(horizontal = 24.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        LogotipoComponent()
+
+        // ================================
+        // LOGOTIPO GRANDE + TÍTULO
+        // ================================
+        Spacer(modifier = Modifier.height(60.dp))
+
+        Box(
+            modifier = Modifier.fillMaxWidth(),
+            contentAlignment = Alignment.Center
+        ) {
+            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                Box(modifier = Modifier.size(180.dp), contentAlignment = Alignment.Center) {
+                    LogotipoComponent()
+                }
+
+                Spacer(Modifier.height(12.dp))
+
+                Text(
+                    "WalkDog",
+                    fontSize = 32.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = Color(0xFF6A1B9A)
+                )
+
+                Spacer(Modifier.height(12.dp))
+
+                Text(
+                    "O melhor site para o seu melhor amigo",
+                    color = Color.Gray,
+                    fontSize = 15.sp
+                )
+            }
+        }
+
+        Spacer(modifier = Modifier.height(50.dp))
+
+        // ================================
+        // CAMPOS DE LOGIN
+        // ================================
         TextField(
             value = email,
             onValueChange = { email = it },
+            modifier = Modifier.fillMaxWidth(),
             label = { Text("Email") },
-            modifier = Modifier.fillMaxWidth()
+            singleLine = true
         )
+
+        Spacer(modifier = Modifier.height(10.dp))
+
         TextField(
             value = senha,
             onValueChange = { senha = it },
+            modifier = Modifier.fillMaxWidth(),
             label = { Text("Senha") },
-            modifier = Modifier.fillMaxWidth()
+            singleLine = true
         )
-        if (state.error != null) {
-            Text(text = state.error ?: "", color = Color.Red, modifier = Modifier.padding(4.dp))
-        }
-        if (state.loading) {
+
+        Spacer(modifier = Modifier.height(10.dp))
+
+        if (state.error != null)
+            Text(state.error ?: "", color = Color.Red, fontSize = 14.sp)
+
+        if (state.loading)
             CircularProgressIndicator()
-        }
+
+        // ================================
+        // BOTÕES ABAIXO — ORGANIZADOS
+        // ================================
+        Spacer(modifier = Modifier.weight(1f))
+
         Button(
             onClick = { viewModel.login(email, senha, "cliente") },
-            modifier = Modifier.fillMaxWidth(),
-            enabled = !state.loading
-        ) { Text("Entrar como Cliente") }
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(52.dp),
+            colors = ButtonDefaults.buttonColors(Color(0xFF6A1B9A))
+        ) {
+            Text("Entrar como Cliente", color = Color.White, fontSize = 16.sp)
+        }
+
+        Spacer(modifier = Modifier.height(10.dp))
 
         Button(
             onClick = { viewModel.login(email, senha, "fornecedor") },
-            modifier = Modifier.fillMaxWidth(),
-            enabled = !state.loading
-        ) { Text("Entrar como Fornecedor") }
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(52.dp),
+            colors = ButtonDefaults.buttonColors(Color(0xFF9C27B0))
+        ) {
+            Text("Entrar como Fornecedor", color = Color.White, fontSize = 16.sp)
+        }
+
+        Spacer(modifier = Modifier.height(24.dp))
 
         OutlinedButton(
             onClick = onRegistarCliente,
-            modifier = Modifier.fillMaxWidth(),
-            enabled = !state.loading
-        ) { Text("Registar Cliente") }
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(50.dp)
+        ) {
+            Text("Registar Cliente")
+        }
+
+        Spacer(modifier = Modifier.height(10.dp))
 
         OutlinedButton(
             onClick = onRegistarFornecedor,
-            modifier = Modifier.fillMaxWidth(),
-            enabled = !state.loading
-        ) { Text("Registar Fornecedor") }
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(50.dp)
+        ) {
+            Text("Registar Fornecedor")
+        }
+
+        Spacer(modifier = Modifier.height(40.dp))
     }
 }
 

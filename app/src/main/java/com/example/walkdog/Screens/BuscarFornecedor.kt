@@ -1,12 +1,15 @@
 package com.example.walkdog.Screens
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.filled.Star
+import androidx.compose.material.icons.outlined.Star
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.*
@@ -16,7 +19,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-
 
 data class Fornecedor(
     val nome: String,
@@ -33,31 +35,32 @@ fun BuscarFornecedoresScreen(
 ) {
 
     val fornecedores = listOf(
-        Fornecedor("João Silva", "Lisboa", 4.8f, Color(0xFF8E67FF)),
-        Fornecedor("Maria Santos", "Porto", 4.7f, Color(0xFFFF8A65)),
-        Fornecedor("Pedro Costa", "Braga", 4.9f, Color(0xFF64B5F6))
+        Fornecedor("João Silva", "Lisboa", 3.8f, Color(0xFF8E67FF)),
+        Fornecedor("Maria Santos", "Porto", 2.7f, Color(0xFFFF8A65)),
+        Fornecedor("Pedro Costa", "Braga", 4.9f, Color(0xFF64B5F6)),
+        Fornecedor("Ana Duarte", "Coimbra", 1.9f, Color(0xFF4CAF50)),
+        Fornecedor("Ricardo Lima", "Faro", 3.0f, Color(0xFFFFC107))
     )
 
     var search by remember { mutableStateOf("") }
+    var ratingMin by remember { mutableStateOf(0) } // ⭐ filtro de rating
 
+    // -------------------------
+    // FILTRAGEM
+    // -------------------------
     val filtrados = fornecedores.filter {
-        it.nome.contains(search, ignoreCase = true) ||
-                it.localidade.contains(search, ignoreCase = true)
+        (it.nome.contains(search, ignoreCase = true) ||
+                it.localidade.contains(search, ignoreCase = true)) &&
+                it.rating >= ratingMin
     }
 
     Scaffold(
         topBar = {
             TopAppBar(
-                title = {
-                    Text("Buscar Fornecedores", color = Color.White, fontSize = 20.sp)
-                },
+                title = { Text("Buscar Fornecedores", color = Color.White, fontSize = 20.sp) },
                 navigationIcon = {
                     IconButton(onClick = onBackClick) {
-                        Icon(
-                            Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "Voltar",
-                            tint = Color.White
-                        )
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Voltar", tint = Color.White)
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(Color(0xFF6A1B9A))
@@ -71,6 +74,9 @@ fun BuscarFornecedoresScreen(
                 .padding(16.dp)
         ) {
 
+            // -------------------------
+            // CAMPO DE PESQUISA
+            // -------------------------
             OutlinedTextField(
                 value = search,
                 onValueChange = { search = it },
@@ -82,6 +88,63 @@ fun BuscarFornecedoresScreen(
 
             Spacer(Modifier.height(16.dp))
 
+            // ⭐⭐⭐⭐⭐ -------------------------
+            // RATING CENTRADO
+            // -------------------------------
+// ⭐⭐⭐⭐⭐ -------------------------
+// RATING CENTRADO
+// -------------------------------
+            Box(
+                modifier = Modifier.fillMaxWidth(),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    "Filtrar por rating mínimo",
+                    fontSize = 16.sp,
+                    fontWeight = FontWeight.Medium
+                )
+            }
+
+            Spacer(Modifier.height(8.dp))
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.Center,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                for (i in 1..5) {
+                    Icon(
+                        imageVector = if (ratingMin >= i) Icons.Filled.Star else Icons.Outlined.Star,
+                        contentDescription = null,
+                        tint = if (ratingMin >= i) Color(0xFFFFC107) else Color.Gray,
+                        modifier = Modifier
+                            .size(36.dp)
+                            .padding(horizontal = 4.dp)
+                            .clickable { ratingMin = i }
+                    )
+                }
+            }
+
+            Spacer(Modifier.height(6.dp))
+
+            Box(
+                modifier = Modifier.fillMaxWidth(),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    "Limpar filtro",
+                    color = Color(0xFF6A1B9A),
+                    modifier = Modifier
+                        .clickable {
+                            ratingMin = 0
+                            search = ""
+                        }
+                        .padding(vertical = 4.dp)
+                )
+            }
+
+            Spacer(Modifier.height(16.dp))
+
             Text(
                 "${filtrados.size} fornecedor(es) encontrado(s)",
                 fontSize = 14.sp,
@@ -90,6 +153,9 @@ fun BuscarFornecedoresScreen(
 
             Spacer(Modifier.height(16.dp))
 
+            // -------------------------
+            // LISTA FILTRADA
+            // -------------------------
             filtrados.forEach { fornecedor ->
                 FornecedorCard(
                     fornecedor = fornecedor,

@@ -120,31 +120,12 @@ class MainActivity : ComponentActivity() {
                                 localidadeFornecedor = entry.arguments!!.getString("localidade")!!,
                                 ratingFornecedor = entry.arguments!!.getString("rating")!!,
 
-                                onBackClick = { navController.navigateUp() },
+                                onBackClick = {
+                                    navController.navigate("login") {
+                                        popUpTo("login") { inclusive = false }
+                                    }
+                                },
 
-                                onScheduleClick = { tipo, minutos, preco ->
-                                    navController.navigate("marcar_passeio/$tipo/$minutos/$preco")
-                                }
-                            )
-                        }
-
-                        // ------------------------------------------------
-                        // MARCAR PASSEIO COM PARAMETROS
-                        // ------------------------------------------------
-                        composable(
-                            route = "perfil_fornecedor/{nome}/{localidade}/{rating}",
-                            arguments = listOf(
-                                navArgument("nome") { type = NavType.StringType },
-                                navArgument("localidade") { type = NavType.StringType },
-                                navArgument("rating") { type = NavType.FloatType }
-                            )
-                        ) { entry ->
-
-                            PerfilFornecedorScreen(
-                                nomeFornecedor = entry.arguments!!.getString("nome")!!,
-                                localidadeFornecedor = entry.arguments!!.getString("localidade")!!,
-                                ratingFornecedor = entry.arguments!!.getFloat("rating").toString(),
-                                onBackClick = { navController.navigateUp() },
                                 onScheduleClick = { tipo, minutos, preco ->
                                     navController.navigate("marcar_passeio/$tipo/$minutos/$preco")
                                 }
