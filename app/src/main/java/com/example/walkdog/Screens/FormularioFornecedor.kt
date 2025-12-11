@@ -17,6 +17,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -24,41 +25,43 @@ import coil.compose.rememberAsyncImagePainter
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.walkdog.viewmodel.FormularioFornecedorViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-@Preview
 fun FormularioFornecedorScreen(
     onBackClick: () -> Unit = {},
     onSaveClick: () -> Unit = {}
 ) {
 
-    // Foto
+    val context = LocalContext.current
+    val viewModel: FormularioFornecedorViewModel = viewModel()
+    val state by viewModel.state.collectAsState()
+
+    // FOTO
     var profileImageUri by remember { mutableStateOf<Uri?>(null) }
     val launcher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetContent()
     ) { uri -> profileImageUri = uri }
 
-    // Campos
+    // CAMPOS
     var nome by remember { mutableStateOf("") }
     var morada by remember { mutableStateOf("") }
     var codPostal by remember { mutableStateOf("") }
     var localidade by remember { mutableStateOf("") }
     var nif by remember { mutableStateOf("") }
     var iban by remember { mutableStateOf("") }
-
-    // Novos campos
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
 
-    // Erros
+    // ERROS
     var nomeErro by remember { mutableStateOf(false) }
     var moradaErro by remember { mutableStateOf(false) }
     var codPostalErro by remember { mutableStateOf(false) }
     var localidadeErro by remember { mutableStateOf(false) }
     var nifErro by remember { mutableStateOf(false) }
     var ibanErro by remember { mutableStateOf(false) }
-
     var emailErro by remember { mutableStateOf(false) }
     var passwordErro by remember { mutableStateOf(false) }
 
@@ -85,7 +88,7 @@ fun FormularioFornecedorScreen(
                 .padding(paddingValues)
                 .padding(16.dp)
                 .fillMaxSize()
-                .verticalScroll(rememberScrollState()),   // <<< SCROLL AQUI
+                .verticalScroll(rememberScrollState()),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
 
@@ -148,7 +151,6 @@ fun FormularioFornecedorScreen(
                     keyboardType = KeyboardType.Number
                 )
 
-                // >>> NOVO CAMPO EMAIL
                 InputField(
                     value = email,
                     onValueChange = { email = it; emailErro = false },
@@ -157,7 +159,6 @@ fun FormularioFornecedorScreen(
                     keyboardType = KeyboardType.Email
                 )
 
-                // >>> NOVO CAMPO PASSWORD
                 InputField(
                     value = password,
                     onValueChange = { password = it; passwordErro = false },
@@ -178,12 +179,11 @@ fun FormularioFornecedorScreen(
                 )
             }
 
-            // BOTÃO
+            // BOTÃO SALVAR
             Spacer(Modifier.height(12.dp))
             Button(
                 onClick = {
 
-                    // Validar
                     nomeErro = nome.isBlank()
                     moradaErro = morada.isBlank()
                     codPostalErro = codPostal.isBlank()
@@ -193,12 +193,25 @@ fun FormularioFornecedorScreen(
                     emailErro = email.isBlank()
                     passwordErro = password.isBlank()
 
-                    val formularioValido =
+                    val valido =
                         !nomeErro && !moradaErro && !codPostalErro &&
                                 !localidadeErro && !nifErro && !ibanErro &&
                                 !emailErro && !passwordErro
 
-                    if (formularioValido) {
+                    if (valido) {
+                        viewModel.salvarFornecedor(
+                            context = context,
+                            nome = nome,
+                            morada = morada,
+                            codPostal = codPostal,
+                            localidade = localidade,
+                            nif = nif,
+                            email = email,
+                            password = password,
+                            iban = iban,
+                            fotoUri = profileImageUri
+                        )
+
                         onSaveClick()
                     }
                 },
@@ -214,3 +227,9 @@ fun FormularioFornecedorScreen(
     }
 }
 
+
+@Preview(showBackground = true)
+@Composable
+fun PreviewFormularioFornecedorScreen() {
+    FormularioFornecedorScreen()
+}
