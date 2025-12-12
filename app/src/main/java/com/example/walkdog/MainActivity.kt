@@ -60,11 +60,11 @@ class MainActivity : ComponentActivity() {
                                     navController.navigate("perfil_cliente")
                                 },
                                 onEntrarFornecedor = {
+                                    state ->
+
                                     // Encoded supplier route
-                                    val nome = Uri.encode("Carlos Andrade")
-                                    val localidade = Uri.encode("Lisboa")
-                                    val rating = Uri.encode("4.9")
-                                    navController.navigate("perfil_fornecedor/$nome/$localidade/$rating")
+                                    val nome = Uri.encode(state.userId)
+                                    navController.navigate("perfil_fornecedor/$nome")
                                 },
                                 onRegistarCliente = { navController.navigate("formulario_cliente") },
                                 onRegistarFornecedor = { navController.navigate("formulario_fornecedor") }
@@ -116,9 +116,7 @@ class MainActivity : ComponentActivity() {
                         ) { entry ->
 
                             PerfilFornecedorScreen(
-                                nomeFornecedor = entry.arguments!!.getString("nome")!!,
-                                localidadeFornecedor = entry.arguments!!.getString("localidade")!!,
-                                ratingFornecedor = entry.arguments!!.getString("rating")!!,
+                                userId = entry.arguments!!.getString("nome")!!,
 
                                 onBackClick = {
                                     navController.navigate("login") {

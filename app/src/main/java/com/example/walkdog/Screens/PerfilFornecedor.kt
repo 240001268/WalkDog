@@ -28,9 +28,7 @@ data class PasseioOpcao(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PerfilFornecedorScreen(
-    nomeFornecedor: String,
-    localidadeFornecedor: String,
-    ratingFornecedor: String,
+    userId: String,
     onBackClick: () -> Unit = {},
     onScheduleClick: (String, Int, Int) -> Unit
 ) {
@@ -98,9 +96,9 @@ fun PerfilFornecedorScreen(
                     Spacer(modifier = Modifier.width(16.dp))
 
                     Column {
-                        Text(nomeFornecedor, fontWeight = FontWeight.Bold, fontSize = 20.sp)
-                        Text(localidadeFornecedor, fontSize = 14.sp, color = Color.Gray)
-                        Text("⭐ $ratingFornecedor", fontSize = 14.sp)
+                        Text(userId, fontWeight = FontWeight.Bold, fontSize = 20.sp)
+                        Text("", fontSize = 14.sp, color = Color.Gray)
+                        Text("⭐ ", fontSize = 14.sp)
                     }
                 }
             }
@@ -154,9 +152,7 @@ fun PasseioFornecedorCard(
 @Composable
 fun PreviewPerfilFornecedor() {
     PerfilFornecedorScreen(
-        nomeFornecedor = "Carlos Andrade",
-        localidadeFornecedor = "Lisboa",
-        ratingFornecedor = "4.9",
+        userId = "693c909d0012467516d8",
         onScheduleClick = { _, _, _ -> }
     )
 }

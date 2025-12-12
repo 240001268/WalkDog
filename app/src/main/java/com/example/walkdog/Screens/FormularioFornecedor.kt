@@ -46,14 +46,14 @@ fun FormularioFornecedorScreen(
     ) { uri -> profileImageUri = uri }
 
     // CAMPOS
-    var nome by remember { mutableStateOf("") }
-    var morada by remember { mutableStateOf("") }
-    var codPostal by remember { mutableStateOf("") }
-    var localidade by remember { mutableStateOf("") }
-    var nif by remember { mutableStateOf("") }
-    var iban by remember { mutableStateOf("") }
-    var email by remember { mutableStateOf("") }
-    var password by remember { mutableStateOf("") }
+    var nome by remember { mutableStateOf("Ze") }
+    var morada by remember { mutableStateOf("Lisboa") }
+    var codPostal by remember { mutableStateOf("1100") }
+    var localidade by remember { mutableStateOf("Lisboa") }
+    var nif by remember { mutableStateOf("100000000") }
+    var iban by remember { mutableStateOf("PT00000000") }
+    var email by remember { mutableStateOf("test@af.pt") }
+    var password by remember { mutableStateOf("123456789") }
 
     // ERROS
     var nomeErro by remember { mutableStateOf(false) }

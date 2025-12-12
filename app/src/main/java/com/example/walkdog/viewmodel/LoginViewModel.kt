@@ -15,7 +15,8 @@ data class LoginUiState(
     val loading: Boolean = false,
     val error: String? = null,
     val success: Boolean = false,
-    val route: String? = null
+    val route: String? = null,
+    val userId: String? = null
 )
 
 class LoginViewModel(
@@ -38,8 +39,9 @@ class LoginViewModel(
 
                 _state.value = LoginUiState(success = true)
 
-                account.createEmailPasswordSession(email, password)
-                _state.value = LoginUiState(route = redirectRoute)
+                var xd = account.createEmailPasswordSession(email, password)
+
+                _state.value = LoginUiState(route = redirectRoute, userId = xd.userId)
 
             } catch (e: AppwriteException) {
                 e.printStackTrace()

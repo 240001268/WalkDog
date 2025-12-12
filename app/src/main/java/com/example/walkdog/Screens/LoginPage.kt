@@ -14,13 +14,14 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.walkdog.componentes.LogotipoComponent
 import com.example.walkdog.service.AppwriteService
+import com.example.walkdog.viewmodel.LoginUiState
 import com.example.walkdog.viewmodel.LoginViewModel
 import com.example.walkdog.viewmodel.LoginViewModelFactory
 
 @Composable
 fun LoginPage(
     onEntrarCliente: () -> Unit,
-    onEntrarFornecedor: () -> Unit,
+    onEntrarFornecedor: (state: LoginUiState) -> Unit,
     onRegistarCliente: () -> Unit,
     onRegistarFornecedor: () -> Unit,
 ) {
@@ -35,7 +36,7 @@ fun LoginPage(
 
     LaunchedEffect(state.success) {
         if (state.route == "cliente") onEntrarCliente()
-        if (state.route == "fornecedor") onEntrarFornecedor()
+        if (state.route == "fornecedor") onEntrarFornecedor(state)
     }
 
     Column(

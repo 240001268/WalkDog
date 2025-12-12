@@ -8,7 +8,7 @@ class FornecedorService {
 
     private val databases: Databases = AppwriteService.databases
 
-    private val databaseId = "appwrite-69236f45003447bc5844"
+    private val databaseId = "69236f45003447bc5844"
     private val collectionId = "69236f93001828d82b6f"
 
     suspend fun registarFornecedor(

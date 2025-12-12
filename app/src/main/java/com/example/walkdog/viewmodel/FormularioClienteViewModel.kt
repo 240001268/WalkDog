@@ -53,7 +53,7 @@ class FormularioClienteViewModel : ViewModel() {
                 )
 
                 // 2. Fazer login automaticamente
-                AppwriteService.account.createEmailPasswordSession(email, password)
+                // AppwriteService.account.createEmailPasswordSession(email, password)
 
                 // 3. Upload da foto (se houver)
                 var fotoId: String? = null

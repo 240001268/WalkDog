@@ -81,7 +81,7 @@ class FormularioFornecedorViewModel : ViewModel() {
                 // --------------------------------------------------------------------
                 // 3. Login automático
                 // --------------------------------------------------------------------
-                AppwriteService.account.createEmailPasswordSession(email, password)
+                // AppwriteService.account.createEmailPasswordSession(email, password)
 
                 // --------------------------------------------------------------------
                 // 4. Conversões necessárias
