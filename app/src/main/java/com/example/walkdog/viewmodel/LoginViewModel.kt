@@ -21,6 +21,7 @@ data class LoginUiState(
 
 class LoginViewModel(
     private val appwrite: AppwriteService
+
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(LoginUiState())

@@ -2,45 +2,46 @@ package com.example.walkdog.Screens
 
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-
-data class PasseioOpcao(
-    val titulo: String,
-    val duracao: Int,
-    val preco: Int,
-    val tipo: String
-)
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.walkdog.viewmodel.PerfilFornecedorViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PerfilFornecedorScreen(
     userId: String,
-    onBackClick: () -> Unit = {},
+    onLogoutClick: () -> Unit = {},
+    onEditPerfil: (String) -> Unit = {},
+    onEscolherPasseiosClick: (String) -> Unit = {},
     onScheduleClick: (String, Int, Int) -> Unit
 ) {
-    // Garante que o botão físico de voltar funciona
-    BackHandler { onBackClick() }
+    val viewModel: PerfilFornecedorViewModel = viewModel()
+    val state by viewModel.state.collectAsState()
 
-    val passeios = listOf(
-        PasseioOpcao("Passeio Rápido", 30, 12, "Rápido"),
-        PasseioOpcao("Passeio Rápido", 60, 20, "Rápido"),
-        PasseioOpcao("Passeio Longo", 90, 30, "Longo"),
-        PasseioOpcao("Passeio Longo", 120, 45, "Longo")
-    )
+    // Buscar dados ao entrar
+    LaunchedEffect(userId) {
+        viewModel.getFornecedorData(userId)
+        viewModel.getPasseiosFornecedor(userId)
+    }
+
+    // Back = Logout
+    BackHandler { onLogoutClick() }
 
     Scaffold(
         topBar = {
@@ -54,10 +55,10 @@ fun PerfilFornecedorScreen(
                     )
                 },
                 navigationIcon = {
-                    IconButton(onClick = onBackClick) {
+                    IconButton(onClick = onLogoutClick) {
                         Icon(
                             Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "Voltar",
+                            contentDescription = "Logout",
                             tint = Color.White
                         )
                     }
@@ -72,43 +73,100 @@ fun PerfilFornecedorScreen(
         Column(
             modifier = Modifier
                 .padding(padding)
-                .padding(16.dp),
+                .padding(16.dp)
+                .fillMaxSize()
+                .verticalScroll(rememberScrollState()),
             verticalArrangement = Arrangement.spacedBy(20.dp)
         ) {
 
-            Card(
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(16.dp),
-                colors = CardDefaults.cardColors(Color.White),
-                elevation = CardDefaults.cardElevation(4.dp)
-            ) {
-                Row(
-                    modifier = Modifier.padding(18.dp),
-                    verticalAlignment = Alignment.CenterVertically
+            // Loading
+            if (state.loading) {
+                CircularProgressIndicator()
+            }
+
+            // Erro
+            state.error?.let {
+                Text("Erro: $it", color = Color.Red)
+            }
+
+            // --------------------------------------------------------------
+            // CARD DO FORNECEDOR (CLICÁVEL PARA EDITAR PERFIL)
+            // --------------------------------------------------------------
+            state.fornecedor?.let { fornecedor ->
+
+                val nome = fornecedor.data["nome"]?.toString() ?: ""
+                val localidade = fornecedor.data["localidade"]?.toString() ?: ""
+
+                Card(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable { onEditPerfil(userId) },
+                    shape = RoundedCornerShape(16.dp),
+                    colors = CardDefaults.cardColors(Color.White),
+                    elevation = CardDefaults.cardElevation(4.dp)
                 ) {
-                    Box(
-                        modifier = Modifier
-                            .size(70.dp)
-                            .clip(CircleShape)
-                            .background(Color(0xFF8E67FF))
-                    )
+                    Row(
+                        modifier = Modifier.padding(18.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .size(70.dp)
+                                .clip(CircleShape)
+                                .background(Color(0xFF8E67FF))
+                        )
 
-                    Spacer(modifier = Modifier.width(16.dp))
+                        Spacer(modifier = Modifier.width(16.dp))
 
-                    Column {
-                        Text(userId, fontWeight = FontWeight.Bold, fontSize = 20.sp)
-                        Text("", fontSize = 14.sp, color = Color.Gray)
-                        Text("⭐ ", fontSize = 14.sp)
+                        Column {
+                            Text(nome, fontWeight = FontWeight.Bold, fontSize = 20.sp)
+                            Text(localidade, fontSize = 14.sp, color = Color.Gray)
+                        }
                     }
                 }
             }
 
-            Text("Passeios Disponíveis", fontSize = 20.sp, fontWeight = FontWeight.Bold)
+            // --------------------------------------------------------------
+            // BOTÃO → ESCOLHER PASSEIOS
+            // --------------------------------------------------------------
+            Button(
+                onClick = { onEscolherPasseiosClick(userId) },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(52.dp),
+                colors = ButtonDefaults.buttonColors(Color(0xFF6A1B9A)),
+                shape = RoundedCornerShape(14.dp)
+            ) {
+                Text(
+                    "Escolher Passeios",
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 17.sp,
+                    color = Color.White
+                )
+            }
 
-            passeios.forEach { passeio ->
+            // --------------------------------------------------------------
+            // LISTA DOS PASSEIOS DO FORNECEDOR
+            // --------------------------------------------------------------
+            Text(
+                "Passeios Disponíveis",
+                fontSize = 20.sp,
+                fontWeight = FontWeight.Bold
+            )
+
+            state.passeios.forEach { passeio ->
+
+                val descricao = passeio.data["descricao"]?.toString() ?: "Sem descrição"
+                val duracao = passeio.data["duracao"]?.toString()?.toIntOrNull() ?: 0
+                val preco = passeio.data["preco"]?.toString()?.toIntOrNull() ?: 0
+
                 PasseioFornecedorCard(
-                    passeio = passeio,
-                    onAgendar = { onScheduleClick(passeio.tipo, passeio.duracao, passeio.preco) }
+                    descricao = descricao,
+                    duracaoStr = duracao.toString(),
+                    precoStr = preco.toString(),
+                    onAgendar = {
+                        onScheduleClick("passeio", duracao, preco)
+                    }
                 )
             }
         }
@@ -117,42 +175,37 @@ fun PerfilFornecedorScreen(
 
 @Composable
 fun PasseioFornecedorCard(
-    passeio: PasseioOpcao,
+    descricao: String,
+    duracaoStr: String,
+    precoStr: String,
     onAgendar: () -> Unit
 ) {
     Card(
-        modifier = Modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(Color.White),
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 6.dp),
         shape = RoundedCornerShape(16.dp),
+        colors = CardDefaults.cardColors(Color.White),
         elevation = CardDefaults.cardElevation(3.dp)
     ) {
-        Row(
-            modifier = Modifier.padding(16.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
+        Column(modifier = Modifier.padding(16.dp)) {
 
-            Column(modifier = Modifier.weight(1f)) {
-                Text(passeio.titulo, fontWeight = FontWeight.Bold, fontSize = 18.sp)
-                Text("${passeio.duracao} min", fontSize = 14.sp, color = Color.DarkGray)
-                Text("${passeio.preco}€", fontWeight = FontWeight.Bold, fontSize = 16.sp)
-            }
+            Text("Descrição: $descricao", fontSize = 18.sp, fontWeight = FontWeight.Bold)
+            Spacer(Modifier.height(6.dp))
+
+            Text("Duração: $duracaoStr min", fontSize = 15.sp)
+            Text("Preço: €$precoStr", fontSize = 15.sp, fontWeight = FontWeight.Medium)
+
+            Spacer(Modifier.height(12.dp))
 
             Button(
                 onClick = onAgendar,
                 colors = ButtonDefaults.buttonColors(Color(0xFF6A1B9A)),
-                shape = RoundedCornerShape(12.dp)
+                shape = RoundedCornerShape(12.dp),
+                modifier = Modifier.fillMaxWidth()
             ) {
-                Text("Agendar", color = Color.White)
+                Text("Agendar Passeio", color = Color.White)
             }
         }
     }
-}
-
-@Preview(showBackground = true)
-@Composable
-fun PreviewPerfilFornecedor() {
-    PerfilFornecedorScreen(
-        userId = "693c909d0012467516d8",
-        onScheduleClick = { _, _, _ -> }
-    )
 }

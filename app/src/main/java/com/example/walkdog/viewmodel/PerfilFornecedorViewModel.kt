@@ -1,64 +1,110 @@
 package com.example.walkdog.viewmodel
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import kotlinx.coroutines.flow.*
-import kotlinx.coroutines.launch
 import com.example.walkdog.service.AppwriteService
+import io.appwrite.Query
 import io.appwrite.models.Document
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.launch
 
-data class PerfilFornecedorUiState(
+data class PerfilFornecedorState(
     val loading: Boolean = false,
     val error: String? = null,
     val fornecedor: Document<Map<String, Any>>? = null,
-    val clientes: List<Document<Map<String, Any>>> = emptyList()
+    val passeios: List<Document<Map<String, Any>>> = emptyList()
 )
 
 class PerfilFornecedorViewModel : ViewModel() {
 
-    private val _state = MutableStateFlow(PerfilFornecedorUiState())
-    val state: StateFlow<PerfilFornecedorUiState> = _state
+    private val _state = MutableStateFlow(PerfilFornecedorState())
+    val state: StateFlow<PerfilFornecedorState> = _state
 
-    private val DB_ID = "69236f45003447bc5844" // ID da base de dados walkdogDB
-    private val COLLECTION_FORNECEDORES = "69236f93001828d82b6f" // ID da coleção fornecedor
-    private val COLLECTION_CLIENTES = "69236f5200282814eb3c" // ID da coleção cliente
+    private val DB_ID = "69236f45003447bc5844"
+    private val COLLECTION_FORNECEDOR = "69236f93001828d82b6f"
+    private val COLLECTION_PASSEIO = "693aeccc002dfd874f6d"
 
-    fun loadFornecedor(id: String) {
-        viewModelScope.launch {
-            try {
-                _state.value = PerfilFornecedorUiState(loading = true)
-
-                val doc = AppwriteService.databases.getDocument(
-                    databaseId = DB_ID,
-                    collectionId = COLLECTION_FORNECEDORES,
-                    documentId = id
-                )
-
-                _state.value = PerfilFornecedorUiState(fornecedor = doc)
-
-            } catch (e: Exception) {
-                _state.value = PerfilFornecedorUiState(error = e.message)
-            }
-        }
-    }
-
-    fun loadClientes() {
+    // ---------------------------------------------------------
+    // 1) Buscar dados do fornecedor
+    // ---------------------------------------------------------
+    fun getFornecedorData(fornecedorId: String) {
         viewModelScope.launch {
             try {
                 _state.value = _state.value.copy(loading = true)
 
-                val result = AppwriteService.databases.listDocuments(
+                val fornecedor = AppwriteService.databases.getDocument(
                     databaseId = DB_ID,
-                    collectionId = COLLECTION_CLIENTES
+                    collectionId = COLLECTION_FORNECEDOR,
+                    documentId = fornecedorId
                 )
 
                 _state.value = _state.value.copy(
-                    clientes = result.documents,
+                    fornecedor = fornecedor,
                     loading = false
                 )
 
             } catch (e: Exception) {
-                _state.value = _state.value.copy(error = e.message)
+                Log.e("PERFIL_FORNECEDOR", "Erro ao obter fornecedor", e)
+                _state.value = _state.value.copy(
+                    error = e.message,
+                    loading = false
+                )
+            }
+        }
+    }
+
+    // ---------------------------------------------------------
+    // 2) Buscar os passeios selecionados no perfil do fornecedor
+    // ---------------------------------------------------------
+    fun getPasseiosFornecedor(fornecedorId: String) {
+        viewModelScope.launch {
+
+            try {
+                _state.value = _state.value.copy(loading = true)
+
+                // 1 — buscar fornecedor
+                val fornecedor = AppwriteService.databases.getDocument(
+                    databaseId = DB_ID,
+                    collectionId = COLLECTION_FORNECEDOR,
+                    documentId = fornecedorId
+                )
+
+                // lista de IDs selecionados no schema
+                val selecionados = (fornecedor.data["passeiosSelecionados"] as? List<*>)
+                    ?.map { it.toString() }
+                    ?: emptyList()
+
+                // 2 — se não tiver passeios, retorna vazio
+                if (selecionados.isEmpty()) {
+                    _state.value = _state.value.copy(
+                        passeios = emptyList(),
+                        loading = false
+                    )
+                    return@launch
+                }
+
+                // 3 — buscar esses passeios na coleção passeio
+                val result = AppwriteService.databases.listDocuments(
+                    databaseId = DB_ID,
+                    collectionId = COLLECTION_PASSEIO,
+                    queries = listOf(
+                        Query.equal("\$id", selecionados)
+                    )
+                )
+
+                _state.value = _state.value.copy(
+                    passeios = result.documents,
+                    loading = false
+                )
+
+            } catch (e: Exception) {
+                Log.e("PERFIL_FORNECEDOR", "Erro ao carregar passeios", e)
+                _state.value = _state.value.copy(
+                    error = e.message,
+                    loading = false
+                )
             }
         }
     }

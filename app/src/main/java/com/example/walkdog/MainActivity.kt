@@ -1,7 +1,7 @@
 package com.example.walkdog
 
-import android.os.Bundle
 import android.net.Uri
+import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -9,7 +9,9 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavType
-import androidx.navigation.compose.*
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.example.walkdog.Screens.*
 import com.example.walkdog.model.Cao
@@ -29,7 +31,7 @@ class MainActivity : ComponentActivity() {
             WalkDogTheme {
 
                 val navController = rememberNavController()
-                val viewModel: LoginViewModel = viewModel(
+                val loginVM: LoginViewModel = viewModel(
                     factory = LoginViewModelFactory(AppwriteService)
                 )
 
@@ -40,9 +42,9 @@ class MainActivity : ComponentActivity() {
                         startDestination = "splash"
                     ) {
 
-                        // ------------------------------------------------
-                        // SPLASH SCREEN
-                        // ------------------------------------------------
+                        // -------------------------------
+                        // SPLASH
+                        // -------------------------------
                         composable("splash") {
                             SplashScreen {
                                 navController.navigate("login") {
@@ -51,88 +53,139 @@ class MainActivity : ComponentActivity() {
                             }
                         }
 
-                        // ------------------------------------------------
+                        // -------------------------------
                         // LOGIN
-                        // ------------------------------------------------
+                        // -------------------------------
                         composable("login") {
                             LoginPage(
                                 onEntrarCliente = {
                                     navController.navigate("perfil_cliente")
                                 },
-                                onEntrarFornecedor = {
-                                    state ->
-
-                                    // Encoded supplier route
-                                    val nome = Uri.encode(state.userId)
-                                    navController.navigate("perfil_fornecedor/$nome")
+                                onEntrarFornecedor = { state ->
+                                    val fornecedorId = Uri.encode(state.userId)
+                                    navController.navigate("perfil_fornecedor/$fornecedorId")
                                 },
-                                onRegistarCliente = { navController.navigate("formulario_cliente") },
-                                onRegistarFornecedor = { navController.navigate("formulario_fornecedor") }
+                                onRegistarCliente = {
+                                    navController.navigate("formulario_cliente")
+                                },
+                                onRegistarFornecedor = {
+                                    navController.navigate("formulario_fornecedor")
+                                }
                             )
                         }
 
-                        // ------------------------------------------------
+                        // -------------------------------
                         // PERFIL CLIENTE
-                        // ------------------------------------------------
+                        // -------------------------------
                         composable("perfil_cliente") {
                             PerfilClienteScreen(
                                 onRegistarCao = { navController.navigate("formulario_cao") },
                                 onBuscarFornecedor = { navController.navigate("buscar_fornecedores") },
                                 onMarcarPasseio = { navController.navigate("marcar_passeio") },
-
-                                onCaoClick = { route ->
-                                    navController.navigate(route)
-                                },
-
-                                onHistoricoClick = {
-                                    navController.navigate("historico_passeios")
-                                },
-
-                                onBackClick = {
-                                    viewModel.logout(navController)
-                                }
+                                onCaoClick = { route -> navController.navigate(route) },
+                                onHistoricoClick = { navController.navigate("historico_passeios") },
+                                onBackClick = { loginVM.logout(navController) }
                             )
                         }
 
-                        // ------------------------------------------------
-                        // HISTÓRICO DE PASSEIOS
-                        // ------------------------------------------------
+                        // -------------------------------
+                        // HISTÓRICO PASSEIOS
+                        // -------------------------------
                         composable("historico_passeios") {
                             HistoricoPasseiosScreen(
                                 onBackClick = { navController.navigateUp() }
                             )
                         }
 
-                        // ------------------------------------------------
+                        // -------------------------------
                         // PERFIL FORNECEDOR
-                        // ------------------------------------------------
+                        // -------------------------------
                         composable(
-                            route = "perfil_fornecedor/{nome}/{localidade}/{rating}",
-                            arguments = listOf(
-                                navArgument("nome") { type = NavType.StringType },
-                                navArgument("localidade") { type = NavType.StringType },
-                                navArgument("rating") { type = NavType.StringType }
-                            )
+                            route = "perfil_fornecedor/{fornecedorId}",
+                            arguments = listOf(navArgument("fornecedorId") {
+                                type = NavType.StringType
+                            })
                         ) { entry ->
 
+                            val fornecedorId = entry.arguments!!.getString("fornecedorId")!!
+
                             PerfilFornecedorScreen(
-                                userId = entry.arguments!!.getString("nome")!!,
-
-                                onBackClick = {
-                                    navController.navigate("login") {
-                                        popUpTo("login") { inclusive = false }
-                                    }
+                                userId = fornecedorId,
+                                onLogoutClick = {
+                                    loginVM.logout(navController)
                                 },
-
+                                onEditPerfil = { id ->
+                                    navController.navigate("editar_fornecedor/$id")
+                                },
+                                onEscolherPasseiosClick = { id ->
+                                    navController.navigate("escolher_passeios/$id")
+                                },
                                 onScheduleClick = { tipo, minutos, preco ->
                                     navController.navigate("marcar_passeio/$tipo/$minutos/$preco")
                                 }
                             )
                         }
 
-                        // ------------------------------------------------
-                        // MARCAR PASSEIO MANUAL
-                        // ------------------------------------------------
+                        // -------------------------------
+                        // EDITAR FORNECEDOR
+                        // -------------------------------
+                        composable(
+                            route = "editar_fornecedor/{userId}",
+                            arguments = listOf(navArgument("userId") {
+                                type = NavType.StringType
+                            })
+                        ) { entry ->
+
+                            val id = entry.arguments!!.getString("userId")!!
+
+                            EditarFornecedorScreen(
+                                userId = id,
+                                onBackClick = { navController.navigateUp() }
+                            )
+                        }
+
+                        // -------------------------------
+                        // ESCOLHER PASSEIOS
+                        // -------------------------------
+                        composable(
+                            route = "escolher_passeios/{userId}",
+                            arguments = listOf(navArgument("userId") {
+                                type = NavType.StringType
+                            })
+                        ) { entry ->
+
+                            val fornecedorId = entry.arguments!!.getString("userId")!!
+
+                            EscolherPasseiosScreen(
+                                userId = fornecedorId,
+                                onBackClick = { navController.navigateUp() }
+                            )
+                        }
+
+                        // -------------------------------
+                        // MARCAR PASSEIO
+                        // -------------------------------
+                        composable(
+                            route = "marcar_passeio/{tipo}/{minutos}/{preco}",
+                            arguments = listOf(
+                                navArgument("tipo") { type = NavType.StringType },
+                                navArgument("minutos") { type = NavType.IntType },
+                                navArgument("preco") { type = NavType.IntType }
+                            )
+                        ) { entry ->
+
+                            val tipo = entry.arguments!!.getString("tipo")!!
+                            val minutos = entry.arguments!!.getInt("minutos")
+                            val preco = entry.arguments!!.getInt("preco")
+
+                            MarcarPasseioScreen(
+                                tipoInicial = tipo,
+                                minutosIniciais = minutos,
+                                onBackClick = { navController.navigateUp() }
+                            )
+                        }
+
+                        // Página sem parâmetros
                         composable("marcar_passeio") {
                             MarcarPasseioScreen(
                                 tipoInicial = "",
@@ -141,9 +194,9 @@ class MainActivity : ComponentActivity() {
                             )
                         }
 
-                        // ------------------------------------------------
+                        // -------------------------------
                         // FORMULÁRIOS
-                        // ------------------------------------------------
+                        // -------------------------------
                         composable("formulario_cliente") {
                             FormularioClienteScreen(
                                 onBackClick = { navController.navigateUp() },
@@ -164,24 +217,21 @@ class MainActivity : ComponentActivity() {
                             )
                         }
 
-                        // ------------------------------------------------
+                        // -------------------------------
                         // BUSCAR FORNECEDORES
-                        // ------------------------------------------------
+                        // -------------------------------
                         composable("buscar_fornecedores") {
                             BuscarFornecedoresScreen(
                                 onBackClick = { navController.navigateUp() },
-                                onVerPerfil = { fornecedor ->
-                                    val nome = Uri.encode(fornecedor.nome)
-                                    val localidade = Uri.encode(fornecedor.localidade)
-                                    val rating = Uri.encode(fornecedor.rating.toString())
-                                    navController.navigate("perfil_fornecedor/$nome/$localidade/$rating")
+                                onVerPerfil = { fornecedorId ->
+                                    navController.navigate("perfil_fornecedor/$fornecedorId")
                                 }
                             )
                         }
 
-                        // ------------------------------------------------
-                        // PERFIL DO CÃO (Todos os campos)
-                        // ------------------------------------------------
+                        // -------------------------------
+                        // PERFIL CÃO
+                        // -------------------------------
                         composable(
                             route = "perfil_cao/{nome}/{raca}/{porte}/{peso}/{localidade}/{fotoUrl}/{nomeDono}/{emailDono}/{telefoneDono}/{localidadeDono}",
                             arguments = listOf(
@@ -194,7 +244,7 @@ class MainActivity : ComponentActivity() {
                                 navArgument("nomeDono") { type = NavType.StringType },
                                 navArgument("emailDono") { type = NavType.StringType },
                                 navArgument("telefoneDono") { type = NavType.StringType },
-                                navArgument("localidadeDono") { type = NavType.StringType },
+                                navArgument("localidadeDono") { type = NavType.StringType }
                             )
                         ) { entry ->
 

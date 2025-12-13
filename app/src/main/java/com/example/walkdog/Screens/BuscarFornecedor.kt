@@ -19,36 +19,27 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-
-data class Fornecedor(
-    val nome: String,
-    val localidade: String,
-    val rating: Float,
-    val avatarColor: Color
-)
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.walkdog.viewmodel.BuscarFornecedoresViewModel
+import com.example.walkdog.viewmodel.FornecedorItem
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun BuscarFornecedoresScreen(
     onBackClick: () -> Unit = {},
-    onVerPerfil: (Fornecedor) -> Unit = {}
+    onVerPerfil: (String) -> Unit = {}   // agora só envia o ID real
 ) {
-
-    val fornecedores = listOf(
-        Fornecedor("João Silva", "Lisboa", 3.8f, Color(0xFF8E67FF)),
-        Fornecedor("Maria Santos", "Porto", 2.7f, Color(0xFFFF8A65)),
-        Fornecedor("Pedro Costa", "Braga", 4.9f, Color(0xFF64B5F6)),
-        Fornecedor("Ana Duarte", "Coimbra", 1.9f, Color(0xFF4CAF50)),
-        Fornecedor("Ricardo Lima", "Faro", 3.0f, Color(0xFFFFC107))
-    )
+    val viewModel: BuscarFornecedoresViewModel = viewModel()
+    val state by viewModel.state.collectAsState()
 
     var search by remember { mutableStateOf("") }
-    var ratingMin by remember { mutableStateOf(0) } // ⭐ filtro de rating
+    var ratingMin by remember { mutableStateOf(0) }
 
-    // -------------------------
-    // FILTRAGEM
-    // -------------------------
-    val filtrados = fornecedores.filter {
+    LaunchedEffect(Unit) {
+        viewModel.loadFornecedores()
+    }
+
+    val filtrados = state.fornecedores.filter {
         (it.nome.contains(search, ignoreCase = true) ||
                 it.localidade.contains(search, ignoreCase = true)) &&
                 it.rating >= ratingMin
@@ -74,9 +65,14 @@ fun BuscarFornecedoresScreen(
                 .padding(16.dp)
         ) {
 
-            // -------------------------
-            // CAMPO DE PESQUISA
-            // -------------------------
+            if (state.loading) {
+                CircularProgressIndicator()
+            }
+
+            state.error?.let {
+                Text("Erro: $it", color = Color.Red)
+            }
+
             OutlinedTextField(
                 value = search,
                 onValueChange = { search = it },
@@ -88,21 +84,11 @@ fun BuscarFornecedoresScreen(
 
             Spacer(Modifier.height(16.dp))
 
-            // ⭐⭐⭐⭐⭐ -------------------------
-            // RATING CENTRADO
-            // -------------------------------
-// ⭐⭐⭐⭐⭐ -------------------------
-// RATING CENTRADO
-// -------------------------------
             Box(
                 modifier = Modifier.fillMaxWidth(),
                 contentAlignment = Alignment.Center
             ) {
-                Text(
-                    "Filtrar por rating mínimo",
-                    fontSize = 16.sp,
-                    fontWeight = FontWeight.Medium
-                )
+                Text("Filtrar por rating mínimo", fontSize = 16.sp, fontWeight = FontWeight.Medium)
             }
 
             Spacer(Modifier.height(8.dp))
@@ -153,13 +139,10 @@ fun BuscarFornecedoresScreen(
 
             Spacer(Modifier.height(16.dp))
 
-            // -------------------------
-            // LISTA FILTRADA
-            // -------------------------
             filtrados.forEach { fornecedor ->
                 FornecedorCard(
                     fornecedor = fornecedor,
-                    onClick = { onVerPerfil(fornecedor) }
+                    onClick = { onVerPerfil(fornecedor.id) }   // envia ID real
                 )
             }
         }
@@ -168,7 +151,7 @@ fun BuscarFornecedoresScreen(
 
 @Composable
 fun FornecedorCard(
-    fornecedor: Fornecedor,
+    fornecedor: FornecedorItem,
     onClick: () -> Unit
 ) {
     Card(
@@ -188,7 +171,7 @@ fun FornecedorCard(
                 modifier = Modifier
                     .size(55.dp)
                     .clip(CircleShape)
-                    .background(fornecedor.avatarColor),
+                    .background(Color(0xFF8E67FF)),
                 contentAlignment = Alignment.Center
             ) {
                 Text(
@@ -216,10 +199,4 @@ fun FornecedorCard(
             }
         }
     }
-}
-
-@Preview(showBackground = true)
-@Composable
-fun PreviewBuscar() {
-    BuscarFornecedoresScreen()
 }
