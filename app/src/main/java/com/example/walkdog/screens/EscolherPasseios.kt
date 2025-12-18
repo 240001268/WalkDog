@@ -1,4 +1,4 @@
-package com.example.walkdog.Screens
+package com.example.walkdog.screens
 
 import android.widget.Toast
 import androidx.compose.foundation.layout.*

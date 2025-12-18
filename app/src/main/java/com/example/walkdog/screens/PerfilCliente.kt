@@ -1,4 +1,4 @@
-package com.example.walkdog.Screens
+package com.example.walkdog.screens
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -71,9 +71,16 @@ fun MenuButton(text: String, onClick: () -> Unit) {
 // CARTÃO PERFIL CLIENTE
 // ------------------------------------------------------------
 @Composable
-fun PerfilCardCliente(nome: String, descricao: String, avatarColor: Color) {
+fun PerfilCardCliente(
+    nome: String,
+    descricao: String,
+    avatarColor: Color,
+    onClick: () -> Unit   // ← novo
+) {
     Card(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable { onClick() },
         shape = RoundedCornerShape(18.dp),
         colors = CardDefaults.cardColors(Color.White),
         elevation = CardDefaults.cardElevation(4.dp)
@@ -158,12 +165,15 @@ fun CaoCard(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PerfilClienteScreen(
+    userId: String?,
     onRegistarCao: () -> Unit,
     onBuscarFornecedor: () -> Unit,
     onMarcarPasseio: () -> Unit,
-    onCaoClick: (String) -> Unit,     // recebe a rota pronta para navegar
+    onCaoClick: (String) -> Unit,
     onHistoricoClick: () -> Unit,
-    onBackClick: () -> Unit
+    onBackClick: () -> Unit,
+    onEditarCliente: (String) -> Unit
+
 ) {
     // MOCK dos cães do cliente
     val caes = listOf(
@@ -222,7 +232,8 @@ fun PerfilClienteScreen(
             PerfilCardCliente(
                 nome = "João Silva",
                 descricao = "Cliente desde 2024 | Lisboa",
-                avatarColor = Color(0xFF8E67FF)
+                avatarColor = Color(0xFF8E67FF),
+                onClick = { onEditarCliente("cliente1") }   // ← usa o ID real do cliente
             )
 
             // Mini menu + histórico
@@ -274,15 +285,17 @@ fun buildPerfilCaoRoute(cao: Cao): String {
             "${enc(cao.localidadeDono)}"
 }
 
-@Preview(showBackground = true, showSystemUi = true)
+@Preview(showBackground = true)
 @Composable
 fun PreviewPerfilClienteScreen() {
     PerfilClienteScreen(
+        userId = "cliente1",
         onRegistarCao = {},
         onBuscarFornecedor = {},
         onMarcarPasseio = {},
         onCaoClick = {},
         onHistoricoClick = {},
-        onBackClick = {}
+        onBackClick = {},
+        onEditarCliente = { _ -> }
     )
 }

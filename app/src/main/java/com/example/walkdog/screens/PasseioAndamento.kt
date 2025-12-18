@@ -22,6 +22,10 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.walkdog.R
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+
+
+
 
 // ---------------------------------------------------------
 // DATA MODEL
@@ -62,7 +66,11 @@ fun HistoricoPasseiosScreen(onBackClick: () -> Unit = {}, onDetalhes: (Int) -> U
                 },
                 navigationIcon = {
                     IconButton(onClick = onBackClick) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = "Voltar", tint = Color.White)
+                        Icon(
+                            Icons.AutoMirrored.Filled.ArrowBack,
+                            contentDescription = "Voltar",
+                            tint = Color.White
+                        )
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = Color(0xFF6A1B9A))

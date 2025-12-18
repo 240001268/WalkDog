@@ -11,7 +11,7 @@ fun LogotipoComponent() {
     Image(
         painter = painterResource(id = R.drawable.dog),
         contentDescription = "Logo",
-        modifier = Modifier.Companion
+        modifier = Modifier
 
 
     )

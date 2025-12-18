@@ -1,4 +1,4 @@
-package com.example.walkdog.Screens
+package com.example.walkdog.screens
 
 import android.net.Uri
 import android.widget.Toast

@@ -1,4 +1,4 @@
-package com.example.walkdog.Screens
+package com.example.walkdog.screens
 
 import androidx.compose.animation.*
 import androidx.compose.animation.core.tween

@@ -1,4 +1,4 @@
-package com.example.walkdog.Screens
+package com.example.walkdog.screens
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
@@ -14,14 +14,13 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.walkdog.componentes.LogotipoComponent
 import com.example.walkdog.service.AppwriteService
-import com.example.walkdog.viewmodel.LoginUiState
 import com.example.walkdog.viewmodel.LoginViewModel
 import com.example.walkdog.viewmodel.LoginViewModelFactory
 
 @Composable
 fun LoginPage(
-    onEntrarCliente: () -> Unit,
-    onEntrarFornecedor: (state: LoginUiState) -> Unit,
+    onEntrarCliente: (String) -> Unit,
+    onEntrarFornecedor: (String) -> Unit,
     onRegistarCliente: () -> Unit,
     onRegistarFornecedor: () -> Unit,
 ) {
@@ -35,8 +34,14 @@ fun LoginPage(
     var senha by remember { mutableStateOf("") }
 
     LaunchedEffect(state.success) {
-        if (state.route == "cliente") onEntrarCliente()
-        if (state.route == "fornecedor") onEntrarFornecedor(state)
+        state.userId?.let { userId ->
+            if (state.success) {
+                when (state.route) {
+                    "cliente" -> onEntrarCliente(userId)
+                    "fornecedor" -> onEntrarFornecedor(userId)
+                }
+            }
+        }
     }
 
     Column(
@@ -47,9 +52,6 @@ fun LoginPage(
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
 
-        // ================================
-        // LOGOTIPO GRANDE + TÍTULO
-        // ================================
         Spacer(modifier = Modifier.height(60.dp))
 
         Box(
@@ -57,7 +59,7 @@ fun LoginPage(
             contentAlignment = Alignment.Center
         ) {
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                Box(modifier = Modifier.size(180.dp), contentAlignment = Alignment.Center) {
+                Box(modifier = Modifier.size(180.dp)) {
                     LogotipoComponent()
                 }
 
@@ -82,9 +84,6 @@ fun LoginPage(
 
         Spacer(modifier = Modifier.height(50.dp))
 
-        // ================================
-        // CAMPOS DE LOGIN
-        // ================================
         TextField(
             value = email,
             onValueChange = { email = it },
@@ -105,19 +104,24 @@ fun LoginPage(
 
         Spacer(modifier = Modifier.height(10.dp))
 
-        if (state.error != null)
-            Text(state.error ?: "", color = Color.Red, fontSize = 14.sp)
+        state.error?.let {
+            Text(it, color = Color.Red, fontSize = 14.sp)
+        }
 
-        if (state.loading)
+        if (state.loading) {
             CircularProgressIndicator()
+        }
 
-        // ================================
-        // BOTÕES ABAIXO — ORGANIZADOS
-        // ================================
         Spacer(modifier = Modifier.weight(1f))
 
         Button(
-            onClick = { viewModel.login(email, senha, "cliente") },
+            onClick = {
+                if (email.isNotBlank() && senha.isNotBlank()) {
+                    viewModel.login(email, senha)
+                } else {
+                    viewModel.setError("Preencha todos os campos.")
+                }
+            },
             modifier = Modifier
                 .fillMaxWidth()
                 .height(52.dp),
@@ -129,7 +133,13 @@ fun LoginPage(
         Spacer(modifier = Modifier.height(10.dp))
 
         Button(
-            onClick = { viewModel.login(email, senha, "fornecedor") },
+            onClick = {
+                if (email.isNotBlank() && senha.isNotBlank()) {
+                    viewModel.login(email, senha, "fornecedor")
+                } else {
+                    viewModel.setError("Preencha todos os campos.")
+                }
+            },
             modifier = Modifier
                 .fillMaxWidth()
                 .height(52.dp),

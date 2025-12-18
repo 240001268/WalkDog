@@ -1,4 +1,4 @@
-package com.example.walkdog.Screens
+package com.example.walkdog.screens
 
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background

@@ -1,17 +1,19 @@
 package com.example.walkdog.viewmodel
 
+import android.content.Context
 import android.net.Uri
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.launch
 import com.example.walkdog.service.AppwriteService
 import io.appwrite.ID
 import io.appwrite.models.InputFile
-import java.io.File
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.launch
 
-data class FormularioClienteUiState(
+
+data class FormularioClienteState(
     val loading: Boolean = false,
     val success: Boolean = false,
     val error: String? = null
@@ -19,87 +21,113 @@ data class FormularioClienteUiState(
 
 class FormularioClienteViewModel : ViewModel() {
 
-    private val _state = MutableStateFlow(FormularioClienteUiState())
-    val state: StateFlow<FormularioClienteUiState> = _state
+    private val _state = MutableStateFlow(FormularioClienteState())
+    val state: StateFlow<FormularioClienteState> = _state
 
-    private val DB_ID = "69236f45003447bc5844" // ID da base de dados walkdogDB
-    private val COLLECTION_CLIENTES = "69236f5200282814eb3c" // ID da coleção cliente
-    private val BUCKET_ID = "fotos" // ID do bucket de fotos (ajustar se necessário)
+    private val DB_ID = "69236f45003447bc5844"
+    private val COLLECTION_CLIENTE = "69236f5200282814eb3c"
+    private val BUCKET_FOTOS_CLIENTE = "693dc47f0030dd8f0250"
 
     fun salvarCliente(
+        context: Context,
         nome: String,
         morada: String,
         codPostal: String,
         localidade: String,
-        nif: String,
+        NIF: String,
         email: String,
         password: String,
         numeroCartao: String,
         validade: String,
         cvv: String,
         iban: String,
-        fotoUri: Uri? = null
+        fotoUri: Uri?
     ) {
         viewModelScope.launch {
             try {
-                _state.value = FormularioClienteUiState(loading = true)
+                _state.value = FormularioClienteState(loading = true)
 
-                // 1. Criar conta no Appwrite (autenticação)
-                val user = AppwriteService.account.create(
+                // ------------------------------------------------------------------
+                // 1) Criar conta Appwrite
+                // ------------------------------------------------------------------
+                val conta = AppwriteService.account.create(
                     userId = ID.unique(),
                     email = email,
                     password = password,
                     name = nome
                 )
 
-                // 2. Fazer login automaticamente
-                // AppwriteService.account.createEmailPasswordSession(email, password)
+                val clienteId = conta.id  // DocumentId será o mesmo id da auth
 
-                // 3. Upload da foto (se houver)
-                var fotoId: String? = null
+                // ------------------------------------------------------------------
+                // 2) Upload da foto
+                // ------------------------------------------------------------------
+                var fotoUrl: String? = null
+
                 if (fotoUri != null) {
-                    try {
-                        // Nota: Para upload de foto, seria necessário converter Uri para File
-                        // Isso requer Context, então por enquanto vamos deixar opcional
-                        // fotoId = uploadFoto(fotoUri)
-                    } catch (e: Exception) {
-                        // Continuar mesmo se o upload da foto falhar
-                        println("Erro ao fazer upload da foto: ${e.message}")
-                    }
+
+                    val bytes = context.contentResolver.openInputStream(fotoUri)!!.readBytes()
+
+                    val upload = AppwriteService.storage.createFile(
+                        bucketId = BUCKET_FOTOS_CLIENTE,
+                        fileId = ID.unique(),
+                        file = InputFile.fromBytes(
+                            filename = "foto_${clienteId}.jpg",
+                            bytes = bytes
+                        )
+                    )
+
+                    val projectId = AppwriteService.client.config["project"]
+                    fotoUrl =
+                        "${AppwriteService.client.endpoint}/storage/buckets/$BUCKET_FOTOS_CLIENTE/files/${upload.id}/view?project=$projectId"
                 }
 
-                // 4. Salvar dados do cliente na base de dados
-                val clienteData = mapOf(
-                    "nome" to nome,
-                    "email" to email,
-                    "senha" to password, // NOTA: Em produção, NÃO salvar senha em texto plano!
-                    "localizacao" to localidade,
-                    "endereco" to "$morada, $codPostal",
-                    "numeroCartao" to numeroCartao,
-                    "validade" to validade,
-                    "cvv" to cvv,
-                    "iban" to iban,
-                    "fotoId" to (fotoId ?: "")
-                )
-
+                // ------------------------------------------------------------------
+                // 3) Criar documento cliente
+                //      → Campos EXATAMENTE como estão na tua Base de Dados
+                // ------------------------------------------------------------------
                 AppwriteService.databases.createDocument(
                     databaseId = DB_ID,
-                    collectionId = COLLECTION_CLIENTES,
-                    documentId = ID.unique(),
-                    data = clienteData
+                    collectionId = COLLECTION_CLIENTE,
+                    documentId = clienteId,
+                    data = mapOf(
+                        "clienteId" to clienteId,     // ID da conta
+                        "nome" to nome,
+                        "morada" to morada,
+                        "codpostal" to codPostal,
+                        "localidade" to localidade,
+                        "NIF" to NIF,
+                        "email" to email,
+                        "senha" to password,          // existe na tua BD
+                        "numeroCartao" to numeroCartao,
+                        "validade" to validade,
+                        "cvv" to cvv,
+                        "iban" to iban,
+                        "fotoId" to (fotoUrl ?: "")
+                    )
                 )
 
-                _state.value = FormularioClienteUiState(success = true)
+                // ------------------------------------------------------------------
+                // 4) Sucesso
+                // ------------------------------------------------------------------
+                _state.value = FormularioClienteState(
+                    loading = false,
+                    success = true
+                )
 
             } catch (e: Exception) {
-                _state.value = FormularioClienteUiState(
-                    error = e.message ?: "Erro ao salvar cliente"
+
+                Log.e("FORM_CLIENTE", "ERRO AO CRIAR CLIENTE", e)
+
+                _state.value = FormularioClienteState(
+                    loading = false,
+                    error = e.message
                 )
             }
         }
     }
 
     fun resetState() {
-        _state.value = FormularioClienteUiState()
+        _state.value = FormularioClienteState()
     }
 }

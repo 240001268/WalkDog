@@ -5,8 +5,8 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.NavController
 import com.example.walkdog.service.AppwriteService
+import io.appwrite.ID
 import io.appwrite.exceptions.AppwriteException
-import io.appwrite.ID                      // ✅ importar ID
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
@@ -21,37 +21,43 @@ data class LoginUiState(
 
 class LoginViewModel(
     private val appwrite: AppwriteService
-
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(LoginUiState())
     val state: StateFlow<LoginUiState> = _state
 
-    fun login(email: String, password: String, redirectRoute: String) {
+    // LOGIN CLIENTE (default)
+    fun login(email: String, password: String) {
+        login(email, password, "cliente")
+    }
+
+    // LOGIN COM TIPO (cliente / fornecedor)
+    fun login(email: String, password: String, tipo: String) {
         viewModelScope.launch {
             try {
                 _state.value = LoginUiState(loading = true)
 
-                val account = try {
-                    appwrite.account
-                } catch (e: Exception) {
-                    throw IllegalStateException("AppwriteService não inicializado.")
-                }
+                val account = appwrite.account
+                account.createEmailPasswordSession(email, password)
 
-                _state.value = LoginUiState(success = true)
+                val user = account.get()
 
-                var xd = account.createEmailPasswordSession(email, password)
-
-                _state.value = LoginUiState(route = redirectRoute, userId = xd.userId)
+                _state.value = LoginUiState(
+                    success = true,
+                    route = tipo,
+                    userId = user.id
+                )
 
             } catch (e: AppwriteException) {
-                e.printStackTrace()
                 _state.value = LoginUiState(error = "Erro Appwrite: ${e.message}")
             } catch (e: Exception) {
-                e.printStackTrace()
                 _state.value = LoginUiState(error = e.message ?: "Erro desconhecido")
             }
         }
+    }
+
+    fun setError(message: String) {
+        _state.value = LoginUiState(error = message)
     }
 
     fun logout(navController: NavController) {
@@ -60,7 +66,7 @@ class LoginViewModel(
                 appwrite.account.deleteSession("current")
                 navController.navigate("login")
             } catch (ex: Exception) {
-                ex.message?.let { Log.e("Teste", it) }
+                ex.message?.let { Log.e("Logout", it) }
             }
         }
     }
@@ -70,13 +76,7 @@ class LoginViewModel(
             try {
                 _state.value = LoginUiState(loading = true)
 
-                val account = try {
-                    appwrite.account
-                } catch (e: Exception) {
-                    throw IllegalStateException("AppwriteService não inicializado.")
-                }
-
-                // ✅ usar ID.unique() em vez de "unique()"
+                val account = appwrite.account
                 account.create(
                     userId = ID.unique(),
                     email = email,
@@ -87,10 +87,8 @@ class LoginViewModel(
                 _state.value = LoginUiState(success = true)
 
             } catch (e: AppwriteException) {
-                e.printStackTrace()
                 _state.value = LoginUiState(error = "Erro Appwrite: ${e.message}")
             } catch (e: Exception) {
-                e.printStackTrace()
                 _state.value = LoginUiState(error = e.message ?: "Erro desconhecido")
             }
         }

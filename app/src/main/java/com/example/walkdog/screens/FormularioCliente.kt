@@ -1,6 +1,6 @@
 @file:OptIn(ExperimentalMaterial3Api::class)
 
-package com.example.walkdog.Screens
+package com.example.walkdog.screens
 
 import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -11,9 +11,12 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Visibility
+import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -21,12 +24,89 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.rememberAsyncImagePainter
 import com.example.walkdog.viewmodel.FormularioClienteViewModel
+import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.input.VisualTransformation
+
+
+@Composable
+fun InputField(
+    value: String,
+    onValueChange: (String) -> Unit,
+    label: String,
+    hasError: Boolean,
+    keyboardType: KeyboardType = KeyboardType.Text,
+    isPassword: Boolean = false
+) {
+
+    var passwordVisible by remember { mutableStateOf(false) }
+
+    OutlinedTextField(
+        value = value,
+        onValueChange = onValueChange,
+        label = { Text(label) },
+        isError = hasError,
+        singleLine = true,
+        keyboardOptions = KeyboardOptions(
+            keyboardType = keyboardType
+        ),
+        visualTransformation = if (isPassword && !passwordVisible)
+            PasswordVisualTransformation()
+        else
+            VisualTransformation.None,
+        trailingIcon = {
+            if (isPassword) {
+                IconButton(onClick = { passwordVisible = !passwordVisible }) {
+                    Icon(
+                        imageVector = if (passwordVisible)
+                            Icons.Default.Visibility
+                        else
+                            Icons.Default.VisibilityOff,
+                        contentDescription = "Ver password"
+                    )
+                }
+            }
+        },
+        modifier = Modifier.fillMaxWidth()
+    )
+
+    if (hasError) {
+        Text(
+            text = "$label é obrigatório",
+            color = Color.Red,
+            fontSize = 12.sp,
+            modifier = Modifier.padding(start = 4.dp, top = 2.dp)
+        )
+    }
+}
+
+@Composable
+fun CardSection(
+    title: String,
+    content: @Composable ColumnScope.() -> Unit
+) {
+    Card(
+        shape = RoundedCornerShape(12.dp),
+        colors = CardDefaults.cardColors(containerColor = Color(0xFFF3E5F5)),
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        Column(modifier = Modifier.padding(16.dp)) {
+            Text(
+                text = title,
+                style = MaterialTheme.typography.titleMedium,
+                color = Color(0xFF6A1B9A)
+            )
+            Spacer(modifier = Modifier.height(12.dp))
+            content()
+        }
+    }
+}
 
 
 @Composable
@@ -60,6 +140,8 @@ fun FormularioClienteScreen(
     val launcher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetContent()
     ) { uri -> profileImageUri = uri }
+
+    val context = LocalContext.current
 
     // ERROS
     var nomeErro by remember { mutableStateOf(false) }
@@ -250,11 +332,12 @@ fun FormularioClienteScreen(
                         if (valido) {
                             // Chamar o ViewModel para salvar
                             viewModel.salvarCliente(
+                                context = context,
                                 nome = nome,
                                 morada = morada,
                                 codPostal = codPostal,
                                 localidade = localidade,
-                                nif = nif,
+                                NIF = nif,
                                 email = email,
                                 password = password,
                                 numeroCartao = numeroCartao,

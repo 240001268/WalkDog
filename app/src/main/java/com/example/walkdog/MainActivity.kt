@@ -13,12 +13,13 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
-import com.example.walkdog.Screens.*
 import com.example.walkdog.model.Cao
+import com.example.walkdog.screens.*
 import com.example.walkdog.service.AppwriteService
 import com.example.walkdog.ui.theme.WalkDogTheme
 import com.example.walkdog.viewmodel.LoginViewModel
 import com.example.walkdog.viewmodel.LoginViewModelFactory
+
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -42,9 +43,6 @@ class MainActivity : ComponentActivity() {
                         startDestination = "splash"
                     ) {
 
-                        // -------------------------------
-                        // SPLASH
-                        // -------------------------------
                         composable("splash") {
                             SplashScreen {
                                 navController.navigate("login") {
@@ -53,17 +51,13 @@ class MainActivity : ComponentActivity() {
                             }
                         }
 
-                        // -------------------------------
-                        // LOGIN
-                        // -------------------------------
                         composable("login") {
                             LoginPage(
-                                onEntrarCliente = {
-                                    navController.navigate("perfil_cliente")
+                                onEntrarCliente = { userId ->
+                                    navController.navigate("perfil_cliente/userId")
                                 },
-                                onEntrarFornecedor = { state ->
-                                    val fornecedorId = Uri.encode(state.userId)
-                                    navController.navigate("perfil_fornecedor/$fornecedorId")
+                                onEntrarFornecedor = { userId ->
+                                    navController.navigate("perfil_fornecedor/userId")
                                 },
                                 onRegistarCliente = {
                                     navController.navigate("formulario_cliente")
@@ -74,32 +68,29 @@ class MainActivity : ComponentActivity() {
                             )
                         }
 
-                        // -------------------------------
-                        // PERFIL CLIENTE
-                        // -------------------------------
-                        composable("perfil_cliente") {
+                        composable("perfil_cliente/{clienteId}") { backStackEntry ->
+                            val clienteId = backStackEntry.arguments?.getString("clienteId")
+
                             PerfilClienteScreen(
+                                userId = clienteId,
                                 onRegistarCao = { navController.navigate("formulario_cao") },
                                 onBuscarFornecedor = { navController.navigate("buscar_fornecedores") },
                                 onMarcarPasseio = { navController.navigate("marcar_passeio") },
                                 onCaoClick = { route -> navController.navigate(route) },
                                 onHistoricoClick = { navController.navigate("historico_passeios") },
-                                onBackClick = { loginVM.logout(navController) }
+                                onBackClick = { loginVM.logout(navController) },
+                                onEditarCliente = { id ->
+                                    navController.navigate("editar_cliente/$id")
+                                }
                             )
                         }
 
-                        // -------------------------------
-                        // HISTÓRICO PASSEIOS
-                        // -------------------------------
                         composable("historico_passeios") {
                             HistoricoPasseiosScreen(
                                 onBackClick = { navController.navigateUp() }
                             )
                         }
 
-                        // -------------------------------
-                        // PERFIL FORNECEDOR
-                        // -------------------------------
                         composable(
                             route = "perfil_fornecedor/{fornecedorId}",
                             arguments = listOf(navArgument("fornecedorId") {
@@ -126,9 +117,6 @@ class MainActivity : ComponentActivity() {
                             )
                         }
 
-                        // -------------------------------
-                        // EDITAR FORNECEDOR
-                        // -------------------------------
                         composable(
                             route = "editar_fornecedor/{userId}",
                             arguments = listOf(navArgument("userId") {
@@ -144,9 +132,21 @@ class MainActivity : ComponentActivity() {
                             )
                         }
 
-                        // -------------------------------
-                        // ESCOLHER PASSEIOS
-                        // -------------------------------
+                        composable(
+                            route = "editar_cliente/{userId}",
+                            arguments = listOf(navArgument("userId") {
+                                type = NavType.StringType
+                            })
+                        ) { entry ->
+
+                            val id = entry.arguments!!.getString("userId")!!
+
+                            EditarClienteScreen(
+                                userId = id,
+                                onBackClick = { navController.navigateUp() }
+                            )
+                        }
+
                         composable(
                             route = "escolher_passeios/{userId}",
                             arguments = listOf(navArgument("userId") {
@@ -162,9 +162,6 @@ class MainActivity : ComponentActivity() {
                             )
                         }
 
-                        // -------------------------------
-                        // MARCAR PASSEIO
-                        // -------------------------------
                         composable(
                             route = "marcar_passeio/{tipo}/{minutos}/{preco}",
                             arguments = listOf(
@@ -176,7 +173,6 @@ class MainActivity : ComponentActivity() {
 
                             val tipo = entry.arguments!!.getString("tipo")!!
                             val minutos = entry.arguments!!.getInt("minutos")
-                            val preco = entry.arguments!!.getInt("preco")
 
                             MarcarPasseioScreen(
                                 tipoInicial = tipo,
@@ -185,7 +181,6 @@ class MainActivity : ComponentActivity() {
                             )
                         }
 
-                        // Página sem parâmetros
                         composable("marcar_passeio") {
                             MarcarPasseioScreen(
                                 tipoInicial = "",
@@ -194,9 +189,6 @@ class MainActivity : ComponentActivity() {
                             )
                         }
 
-                        // -------------------------------
-                        // FORMULÁRIOS
-                        // -------------------------------
                         composable("formulario_cliente") {
                             FormularioClienteScreen(
                                 onBackClick = { navController.navigateUp() },
@@ -217,9 +209,6 @@ class MainActivity : ComponentActivity() {
                             )
                         }
 
-                        // -------------------------------
-                        // BUSCAR FORNECEDORES
-                        // -------------------------------
                         composable("buscar_fornecedores") {
                             BuscarFornecedoresScreen(
                                 onBackClick = { navController.navigateUp() },
@@ -229,9 +218,6 @@ class MainActivity : ComponentActivity() {
                             )
                         }
 
-                        // -------------------------------
-                        // PERFIL CÃO
-                        // -------------------------------
                         composable(
                             route = "perfil_cao/{nome}/{raca}/{porte}/{peso}/{localidade}/{fotoUrl}/{nomeDono}/{emailDono}/{telefoneDono}/{localidadeDono}",
                             arguments = listOf(
@@ -249,16 +235,16 @@ class MainActivity : ComponentActivity() {
                         ) { entry ->
 
                             val cao = Cao(
-                                nome = entry.arguments!!.getString("nome")!!,
-                                raca = entry.arguments!!.getString("raca")!!,
-                                porte = entry.arguments!!.getString("porte")!!,
-                                peso = entry.arguments!!.getString("peso")!!,
-                                localidade = entry.arguments!!.getString("localidade")!!,
-                                fotoUrl = entry.arguments!!.getString("fotoUrl")!!.ifEmpty { null },
-                                nomeDono = entry.arguments!!.getString("nomeDono")!!,
-                                emailDono = entry.arguments!!.getString("emailDono")!!,
-                                telefoneDono = entry.arguments!!.getString("telefoneDono")!!,
-                                localidadeDono = entry.arguments!!.getString("localidadeDono")!!
+                                nome = Uri.decode(entry.arguments!!.getString("nome")!!),
+                                raca = Uri.decode(entry.arguments!!.getString("raca")!!),
+                                porte = Uri.decode(entry.arguments!!.getString("porte")!!),
+                                peso = Uri.decode(entry.arguments!!.getString("peso")!!),
+                                localidade = Uri.decode(entry.arguments!!.getString("localidade")!!),
+                                fotoUrl = Uri.decode(entry.arguments!!.getString("fotoUrl")!!).ifEmpty { null },
+                                nomeDono = Uri.decode(entry.arguments!!.getString("nomeDono")!!),
+                                emailDono = Uri.decode(entry.arguments!!.getString("emailDono")!!),
+                                telefoneDono = Uri.decode(entry.arguments!!.getString("telefoneDono")!!),
+                                localidadeDono = Uri.decode(entry.arguments!!.getString("localidadeDono")!!)
                             )
 
                             PerfilCaoScreen(
