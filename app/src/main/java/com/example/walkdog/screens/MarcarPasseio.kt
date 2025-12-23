@@ -10,55 +10,41 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.walkdog.viewmodel.MarcarPasseioViewModel
+import androidx.compose.material3.MenuAnchorType
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MarcarPasseioScreen(
-    tipoInicial: String = "",
-    minutosIniciais: Int = 0,
-    onBackClick: () -> Unit = {},
-    dogs: List<String> = listOf("Rex", "Bobby", "Luna")
+    onBackClick: () -> Unit = {}
 ) {
+    // --------------------------------
+    // VIEWMODEL
+    // --------------------------------
+    val viewModel: MarcarPasseioViewModel = viewModel()
+    val state by viewModel.state.collectAsState()
 
-    // -------------------- ESTADOS CORRIGIDOS --------------------
+    LaunchedEffect(Unit) {
+        viewModel.loadCaesCliente()
+        viewModel.loadPasseios()
+    }
 
-    var selectedDog by remember { mutableStateOf("") }
+    LaunchedEffect(state.success) {
+        if (state.success) onBackClick()
+    }
+
+    // --------------------------------
+    // CAMPOS LOCAIS
+    // --------------------------------
     var localidade by remember { mutableStateOf("") }
     var horaInicio by remember { mutableStateOf("") }
 
-    // duração (Rápido / Longo)
-    var duracao by remember { mutableStateOf(tipoInicial.ifEmpty { "Rápido" }) }
-
-    // tempo selecionado (30,60,90,120)
-    var tempoSelecionado by remember {
-        mutableStateOf(if (minutosIniciais > 0) "minutosIniciais min" else "")
-    }
-
-    // tipo de passeio (Individual / Grupo)
-    var tipoPasseio by remember { mutableStateOf("Individual") }
-
-    // -------------------- TABELA DE PREÇOS --------------------
-
-    val opcoesPrecoRapido = mapOf(
-        "30 min" to "12€",
-        "60 min" to "20€"
-    )
-
-    val opcoesPrecoLongo = mapOf(
-        "90 min" to "30€",
-        "120 min" to "45€"
-    )
-
-    val tempoOptions =
-        if (duracao == "Rápido") opcoesPrecoRapido else opcoesPrecoLongo
-
-    val precoFinal = tempoOptions[tempoSelecionado] ?: "--"
-
-    // -------------------- UI --------------------
-
+    // --------------------------------
+    // UI
+    // --------------------------------
     Scaffold(
         topBar = {
             TopAppBar(
@@ -93,32 +79,42 @@ fun MarcarPasseioScreen(
             verticalArrangement = Arrangement.spacedBy(18.dp)
         ) {
 
-            // ------------------ SELECIONAR CÃO ------------------
+            // --------------------------------------------------
+            // SELECIONAR CÃO
+            // --------------------------------------------------
             var expandedDog by remember { mutableStateOf(false) }
+            var selectedDogLabel by remember { mutableStateOf("") }
 
             ExposedDropdownMenuBox(
                 expanded = expandedDog,
                 onExpandedChange = { expandedDog = !expandedDog }
             ) {
                 OutlinedTextField(
-                    value = selectedDog,
+                    value = selectedDogLabel,
                     onValueChange = {},
                     readOnly = true,
                     label = { Text("Selecionar Cão") },
-                    trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expandedDog) },
+                    trailingIcon = {
+                        ExposedDropdownMenuDefaults.TrailingIcon(expandedDog)
+                    },
                     modifier = Modifier
-                        .fillMaxWidth(),
-                    shape = RoundedCornerShape(12.dp),
+                        .fillMaxWidth()
+                        .menuAnchor(MenuAnchorType.PrimaryNotEditable),
+                    shape = RoundedCornerShape(12.dp)
                 )
+
                 ExposedDropdownMenu(
                     expanded = expandedDog,
                     onDismissRequest = { expandedDog = false }
                 ) {
-                    dogs.forEach {
+                    state.caes.forEach { doc ->
+                        val nome = doc.data["nome"]?.toString() ?: ""
+
                         DropdownMenuItem(
-                            text = { Text(it) },
+                            text = { Text(nome) },
                             onClick = {
-                                selectedDog = it
+                                selectedDogLabel = nome
+                                viewModel.selecionarCao(doc.id)
                                 expandedDog = false
                             }
                         )
@@ -126,127 +122,76 @@ fun MarcarPasseioScreen(
                 }
             }
 
-            // ------------------ LOCALIDADE ------------------
+            // --------------------------------------------------
+            // LOCALIDADE
+            // --------------------------------------------------
             OutlinedTextField(
                 value = localidade,
                 onValueChange = { localidade = it },
                 label = { Text("Localidade") },
                 modifier = Modifier.fillMaxWidth(),
-                singleLine = true,
                 shape = RoundedCornerShape(12.dp)
             )
 
-            // ------------------ HORA ------------------
+            // --------------------------------------------------
+            // HORA INÍCIO
+            // --------------------------------------------------
             OutlinedTextField(
                 value = horaInicio,
                 onValueChange = { horaInicio = it },
                 label = { Text("Hora Início (ex: 17:00)") },
-                singleLine = true,
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(12.dp)
             )
 
-            // ------------------ DURAÇÃO ------------------
-            var expandedDuracao by remember { mutableStateOf(false) }
+            // --------------------------------------------------
+            // SELECIONAR PASSEIO (descrição + duração)
+            // --------------------------------------------------
+            var expandedPasseio by remember { mutableStateOf(false) }
+            var passeioLabel by remember { mutableStateOf("") }
 
             ExposedDropdownMenuBox(
-                expanded = expandedDuracao,
-                onExpandedChange = { expandedDuracao = !expandedDuracao }
+                expanded = expandedPasseio,
+                onExpandedChange = { expandedPasseio = !expandedPasseio }
             ) {
                 OutlinedTextField(
-                    value = duracao,
-                    onValueChange = {},
-                    readOnly = true,
-                    label = { Text("Duração do Passeio") },
-                    trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expandedDuracao) },
-                    modifier = Modifier
-                        .fillMaxWidth(),
-                    shape = RoundedCornerShape(12.dp)
-                )
-                ExposedDropdownMenu(
-                    expanded = expandedDuracao,
-                    onDismissRequest = { expandedDuracao = false }
-                ) {
-                    listOf("Rápido", "Longo").forEach {
-                        DropdownMenuItem(
-                            text = { Text(it) },
-                            onClick = {
-                                duracao = it
-                                tempoSelecionado = ""
-                                expandedDuracao = false
-                            }
-                        )
-                    }
-                }
-            }
-
-            // ------------------ TEMPO ------------------
-            var expandedTempo by remember { mutableStateOf(false) }
-
-            ExposedDropdownMenuBox(
-                expanded = expandedTempo,
-                onExpandedChange = { expandedTempo = !expandedTempo }
-            ) {
-                OutlinedTextField(
-                    value = tempoSelecionado,
-                    onValueChange = {},
-                    readOnly = true,
-                    label = { Text("Tempo") },
-                    trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expandedTempo) },
-                    modifier = Modifier
-                       .fillMaxWidth(),
-                    shape = RoundedCornerShape(12.dp)
-                )
-                ExposedDropdownMenu(
-                    expanded = expandedTempo,
-                    onDismissRequest = { expandedTempo = false }
-                ) {
-                    tempoOptions.keys.forEach {
-                        DropdownMenuItem(
-                            text = { Text(it) },
-                            onClick = {
-                                tempoSelecionado = it
-                                expandedTempo = false
-                            }
-                        )
-                    }
-                }
-            }
-
-            // ------------------ TIPO DE PASSEIO ------------------
-            var expandedTipo by remember { mutableStateOf(false) }
-
-            ExposedDropdownMenuBox(
-                expanded = expandedTipo,
-                onExpandedChange = { expandedTipo = !expandedTipo }
-            ) {
-                OutlinedTextField(
-                    value = tipoPasseio,
+                    value = passeioLabel,
                     onValueChange = {},
                     readOnly = true,
                     label = { Text("Tipo de Passeio") },
-                    trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expandedTipo) },
+                    trailingIcon = {
+                        ExposedDropdownMenuDefaults.TrailingIcon(expandedPasseio)
+                    },
                     modifier = Modifier
-                        .fillMaxWidth(),
+                        .fillMaxWidth()
+                        .menuAnchor(MenuAnchorType.PrimaryNotEditable),
                     shape = RoundedCornerShape(12.dp)
                 )
+
                 ExposedDropdownMenu(
-                    expanded = expandedTipo,
-                    onDismissRequest = { expandedTipo = false }
+                    expanded = expandedPasseio,
+                    onDismissRequest = { expandedPasseio = false }
                 ) {
-                    listOf("Individual", "Grupo").forEach {
+                    state.passeios.forEach { doc ->
+                        val descricao = doc.data["descricao"]?.toString() ?: ""
+                        val duracao = doc.data["duracao"]?.toString() ?: ""
+                        val preco = doc.data["preco"]?.toString() ?: ""
+
                         DropdownMenuItem(
-                            text = { Text(it) },
+                            text = { Text("$descricao - $duracao ($preco)") },
                             onClick = {
-                                tipoPasseio = it
-                                expandedTipo = false
+                                passeioLabel = "$descricao - $duracao"
+                                viewModel.selecionarPasseio(doc)
+                                expandedPasseio = false
                             }
                         )
                     }
                 }
             }
 
-            // ------------------ PREÇO + CONFIRMAR ------------------
+            // --------------------------------------------------
+            // PREÇO + CONFIRMAR
+            // --------------------------------------------------
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
@@ -254,9 +199,9 @@ fun MarcarPasseioScreen(
             ) {
 
                 Column {
-                    Text("Preço do Passeio", color = Color.Gray, fontSize = 14.sp)
+                    Text("Preço do Passeio", color = Color.Gray)
                     Text(
-                        precoFinal,
+                        if (state.precoFinal.isBlank()) "--" else state.precoFinal,
                         fontSize = 24.sp,
                         fontWeight = FontWeight.Bold,
                         color = Color(0xFF6A1B9A)
@@ -265,21 +210,27 @@ fun MarcarPasseioScreen(
 
                 Button(
                     onClick = {
-                        // TODO: Gravar no Appwrite
+                        viewModel.confirmarPasseio(
+                            localidade = localidade,
+                            horaInicio = horaInicio
+                        )
                     },
-                    enabled = precoFinal != "--",
-                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF6A1B9A)),
-                    shape = RoundedCornerShape(12.dp)
+                    enabled = state.precoFinal.isNotBlank() && !state.loading,
+                    shape = RoundedCornerShape(12.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = Color(0xFF6A1B9A)
+                    )
                 ) {
                     Text("Confirmar", color = Color.White)
                 }
             }
+
+            // --------------------------------------------------
+            // ERRO
+            // --------------------------------------------------
+            state.error?.let {
+                Text(it, color = Color.Red)
+            }
         }
     }
-}
-
-@Preview(showBackground = true)
-@Composable
-fun PreviewMarcarPasseioScreen() {
-    MarcarPasseioScreen()
 }

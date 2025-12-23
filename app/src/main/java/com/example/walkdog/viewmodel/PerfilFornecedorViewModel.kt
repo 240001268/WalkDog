@@ -27,23 +27,34 @@ class PerfilFornecedorViewModel : ViewModel() {
     private val COLLECTION_PASSEIO = "693aeccc002dfd874f6d"
 
     // ---------------------------------------------------------
-    // 1) Buscar dados do fornecedor
+    // 1️⃣ Buscar dados do fornecedor (POR userId)
     // ---------------------------------------------------------
-    fun getFornecedorData(fornecedorId: String) {
+    fun getFornecedorData() {
         viewModelScope.launch {
             try {
                 _state.value = _state.value.copy(loading = true)
 
-                val fornecedor = AppwriteService.databases.getDocument(
+                val user = AppwriteService.account.get()
+
+                val result = AppwriteService.databases.listDocuments(
                     databaseId = DB_ID,
                     collectionId = COLLECTION_FORNECEDOR,
-                    documentId = fornecedorId
+                    queries = listOf(
+                        Query.equal("userId", user.id)
+                    )
                 )
 
-                _state.value = _state.value.copy(
-                    fornecedor = fornecedor,
-                    loading = false
-                )
+                if (result.documents.isNotEmpty()) {
+                    _state.value = _state.value.copy(
+                        fornecedor = result.documents.first(),
+                        loading = false
+                    )
+                } else {
+                    _state.value = _state.value.copy(
+                        error = "Fornecedor não encontrado",
+                        loading = false
+                    )
+                }
 
             } catch (e: Exception) {
                 Log.e("PERFIL_FORNECEDOR", "Erro ao obter fornecedor", e)
@@ -56,36 +67,23 @@ class PerfilFornecedorViewModel : ViewModel() {
     }
 
     // ---------------------------------------------------------
-    // 2) Buscar os passeios selecionados no perfil do fornecedor
+    // 2️⃣ Buscar os passeios do fornecedor (USANDO STATE)
     // ---------------------------------------------------------
-    fun getPasseiosFornecedor(fornecedorId: String) {
+    fun getPasseiosFornecedor() {
         viewModelScope.launch {
-
             try {
-                _state.value = _state.value.copy(loading = true)
+                val fornecedor = _state.value.fornecedor
+                if (fornecedor == null) return@launch
 
-                // 1 — buscar fornecedor
-                val fornecedor = AppwriteService.databases.getDocument(
-                    databaseId = DB_ID,
-                    collectionId = COLLECTION_FORNECEDOR,
-                    documentId = fornecedorId
-                )
-
-                // lista de IDs selecionados no schema
                 val selecionados = (fornecedor.data["passeiosSelecionados"] as? List<*>)
                     ?.map { it.toString() }
                     ?: emptyList()
 
-                // 2 — se não tiver passeios, retorna vazio
                 if (selecionados.isEmpty()) {
-                    _state.value = _state.value.copy(
-                        passeios = emptyList(),
-                        loading = false
-                    )
+                    _state.value = _state.value.copy(passeios = emptyList())
                     return@launch
                 }
 
-                // 3 — buscar esses passeios na coleção passeio
                 val result = AppwriteService.databases.listDocuments(
                     databaseId = DB_ID,
                     collectionId = COLLECTION_PASSEIO,
@@ -95,15 +93,13 @@ class PerfilFornecedorViewModel : ViewModel() {
                 )
 
                 _state.value = _state.value.copy(
-                    passeios = result.documents,
-                    loading = false
+                    passeios = result.documents
                 )
 
             } catch (e: Exception) {
                 Log.e("PERFIL_FORNECEDOR", "Erro ao carregar passeios", e)
                 _state.value = _state.value.copy(
-                    error = e.message,
-                    loading = false
+                    error = e.message
                 )
             }
         }

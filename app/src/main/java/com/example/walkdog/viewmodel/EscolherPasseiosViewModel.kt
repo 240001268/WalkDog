@@ -28,27 +28,44 @@ class EscolherPasseiosViewModel : ViewModel() {
     private val COLLECTION_FORNECEDOR = "69236f93001828d82b6f"
 
     // ----------------------------------------------------------
-    // 1) CARREGAR TODOS OS PASSEIOS
+    // 1️⃣ CARREGAR PASSEIOS + FORNECEDOR (POR userId)
     // ----------------------------------------------------------
-    fun loadPasseios(fornecedorId: String) {
+    fun loadPasseios() {
         viewModelScope.launch {
             try {
                 _state.value = EscolherPasseiosState(loading = true)
 
+                // 🔹 user autenticado
+                val user = AppwriteService.account.get()
+
+                // 🔹 buscar fornecedor pelo userId
+                val fornecedorResult = AppwriteService.databases.listDocuments(
+                    databaseId = DB_ID,
+                    collectionId = COLLECTION_FORNECEDOR,
+                    queries = listOf(
+                        Query.equal("userId", user.id)
+                    )
+                )
+
+                if (fornecedorResult.documents.isEmpty()) {
+                    _state.value = EscolherPasseiosState(
+                        error = "Fornecedor não encontrado"
+                    )
+                    return@launch
+                }
+
+                val fornecedor = fornecedorResult.documents.first()
+
+                // 🔹 carregar passeios
                 val todos = AppwriteService.databases.listDocuments(
                     databaseId = DB_ID,
                     collectionId = COLLECTION_PASSEIO
                 )
 
-                // carregar seleção anterior do fornecedor
-                val fornecedor = AppwriteService.databases.getDocument(
-                    databaseId = DB_ID,
-                    collectionId = COLLECTION_FORNECEDOR,
-                    documentId = fornecedorId
-                )
-
-                val selecionados = (fornecedor.data["passeiosSelecionados"] as? List<*>)?.map { it.toString() }
-                    ?: emptyList()
+                val selecionados =
+                    (fornecedor.data["passeiosSelecionados"] as? List<*>)
+                        ?.map { it.toString() }
+                        ?: emptyList()
 
                 _state.value = EscolherPasseiosState(
                     todosPasseios = todos.documents,
@@ -63,42 +80,68 @@ class EscolherPasseiosViewModel : ViewModel() {
     }
 
     // ----------------------------------------------------------
-    // 2) ALTERAR SELEÇÃO LOCAL
+    // 2️⃣ TOGGLE LOCAL
     // ----------------------------------------------------------
     fun togglePasseio(passeioId: String) {
         val current = _state.value.selecionados.toMutableList()
-
-        if (current.contains(passeioId))
-            current.remove(passeioId)
-        else
-            current.add(passeioId)
+        if (current.contains(passeioId)) current.remove(passeioId)
+        else current.add(passeioId)
 
         _state.value = _state.value.copy(selecionados = current)
     }
 
     // ----------------------------------------------------------
-    // 3) GUARDAR SELEÇÃO NO APPWRITE
+    // 3️⃣ SALVAR NO DOCUMENTO CORRETO
     // ----------------------------------------------------------
-    fun salvar(fornecedorId: String) {
+    fun salvar() {
         viewModelScope.launch {
             try {
-                _state.value = _state.value.copy(loading = true)
+                _state.value = _state.value.copy(loading = true, error = null)
+
+                val user = AppwriteService.account.get()
+
+                val fornecedorResult = AppwriteService.databases.listDocuments(
+                    databaseId = DB_ID,
+                    collectionId = COLLECTION_FORNECEDOR,
+                    queries = listOf(
+                        Query.equal("userId", user.id)
+                    )
+                )
+
+                if (fornecedorResult.documents.isEmpty()) {
+                    _state.value = _state.value.copy(
+                        loading = false,
+                        error = "Fornecedor não encontrado"
+                    )
+                    return@launch
+                }
+
+                val fornecedor = fornecedorResult.documents.first()
 
                 AppwriteService.databases.updateDocument(
                     databaseId = DB_ID,
                     collectionId = COLLECTION_FORNECEDOR,
-                    documentId = fornecedorId,
+                    documentId = fornecedor.id,
                     data = mapOf(
                         "passeiosSelecionados" to _state.value.selecionados
                     )
                 )
 
-                _state.value = _state.value.copy(success = true, loading = false)
+                _state.value = _state.value.copy(
+                    success = true,
+                    loading = false
+                )
 
             } catch (e: Exception) {
-                _state.value = _state.value.copy(error = e.message, loading = false)
+                _state.value = _state.value.copy(
+                    error = e.message ?: "Erro ao guardar passeios",
+                    loading = false
+                )
                 Log.e("ESCOLHER_PASSEIOS", "Erro salvando seleção", e)
             }
         }
+
+
     }
+
 }

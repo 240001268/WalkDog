@@ -21,33 +21,48 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.Alignment
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.platform.LocalContext
+import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.rememberAsyncImagePainter
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import com.example.walkdog.viewmodel.FormularioCaoViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun FormularioCaoScreen(onBackClick: () -> Unit = {}) {
 
+    // 🔹 ViewModel + State
+    val viewModel: FormularioCaoViewModel = viewModel()
+    val state by viewModel.state.collectAsState()
+    val context = LocalContext.current
+
+    // 🔹 Campos do cão (UI)
     var nomeCao by remember { mutableStateOf("") }
     var raca by remember { mutableStateOf("") }
     var porte by remember { mutableStateOf("") }
     var peso by remember { mutableStateOf("") }
     var localidadeCao by remember { mutableStateOf("") }
 
-    var nomeDono by remember { mutableStateOf("") }
-    var email by remember { mutableStateOf("") }
-    var telefone by remember { mutableStateOf("") }
-    var localidadeDono by remember { mutableStateOf("") }
-
+    // 🔹 Foto
     var fotoUri by remember { mutableStateOf<Uri?>(null) }
+
+    // 🔹 Carregar dono automaticamente
+    LaunchedEffect(Unit) {
+        viewModel.loadDono()
+    }
 
     val launcher = rememberLauncherForActivityResult(
         ActivityResultContracts.GetContent()
     ) { uri ->
         fotoUri = uri
+    }
+
+    // 🔹 Se sucesso → voltar
+    LaunchedEffect(state.success) {
+        if (state.success) onBackClick()
     }
 
     Scaffold(
@@ -82,6 +97,9 @@ fun FormularioCaoScreen(onBackClick: () -> Unit = {}) {
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
 
+            // -----------------------
+            // FOTO DO CÃO
+            // -----------------------
             item {
                 Box(
                     modifier = Modifier
@@ -103,6 +121,9 @@ fun FormularioCaoScreen(onBackClick: () -> Unit = {}) {
                 }
             }
 
+            // -----------------------
+            // INFO DO CÃO
+            // -----------------------
             item {
                 InfoCard(title = "Informações do Cão") {
                     CustomField("Nome", nomeCao) { nomeCao = it }
@@ -113,25 +134,76 @@ fun FormularioCaoScreen(onBackClick: () -> Unit = {}) {
                 }
             }
 
+            // -----------------------
+            // INFO DO DONO (STATE)
+            // -----------------------
             item {
                 InfoCard(title = "Informações do Dono") {
-                    CustomField("Nome", nomeDono) { nomeDono = it }
-                    CustomField("Email", email, keyboard = KeyboardType.Email) { email = it }
-                    CustomField("Telefone", telefone, keyboard = KeyboardType.Phone) { telefone = it }
-                    CustomField("Localidade", localidadeDono) { localidadeDono = it }
+
+                    Text("Nome", fontWeight = FontWeight.Bold)
+                    Text(state.nomeDono)
+                    Spacer(Modifier.height(8.dp))
+
+                    Text("Email", fontWeight = FontWeight.Bold)
+                    Text(state.emailDono)
+                    Spacer(Modifier.height(8.dp))
+
+                    Text("Telefone", fontWeight = FontWeight.Bold)
+                    Text(state.telefoneDono)
+                    Spacer(Modifier.height(8.dp))
+
+                    Text("Localidade", fontWeight = FontWeight.Bold)
+                    Text(state.localidadeDono)
                 }
             }
 
+            // -----------------------
+            // BOTÃO SALVAR
+            // -----------------------
             item {
                 Button(
-                    onClick = { /* TODO salvar no Appwrite */ },
+                    onClick = {
+                        if (
+                            nomeCao.isBlank() ||
+                            raca.isBlank() ||
+                            porte.isBlank() ||
+                            peso.isBlank() ||
+                            localidadeCao.isBlank()
+                        ) {
+                            return@Button
+                        }
+
+                        viewModel.registarCao(
+                            context = context,
+                            nome = nomeCao,
+                            raca = raca,
+                            porte = porte,
+                            peso = peso,
+                            localidadeCao = localidadeCao,
+                            fotoUri = fotoUri
+                        )
+                    },
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(55.dp),
+                    enabled = !state.loading,
                     shape = RoundedCornerShape(12.dp),
                     colors = ButtonDefaults.buttonColors(Color(0xFF6A1B9A))
                 ) {
-                    Text("Adicionar Cão", fontSize = 18.sp, color = Color.White)
+                    if (state.loading) {
+                        CircularProgressIndicator(color = Color.White, strokeWidth = 2.dp)
+                    } else {
+                        Text("Adicionar Cão", fontSize = 18.sp, color = Color.White)
+                    }
+                }
+            }
+
+            // -----------------------
+            // ERRO
+            // -----------------------
+            state.error?.let {
+                item {
+                    Text(it, color = Color.Red)
                 }
             }
         }

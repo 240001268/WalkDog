@@ -25,7 +25,6 @@ import androidx.compose.ui.unit.dp
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun EscolherPasseiosScreen(
-    userId: String,
     onBackClick: () -> Unit,
     viewModel: EscolherPasseiosViewModel = viewModel()
 ) {
@@ -34,7 +33,7 @@ fun EscolherPasseiosScreen(
 
     // Carregar dados ao entrar
     LaunchedEffect(Unit) {
-        viewModel.loadPasseios(userId)
+        viewModel.loadPasseios()
     }
 
     // Sucesso ao salvar
@@ -120,7 +119,7 @@ fun EscolherPasseiosScreen(
             Spacer(Modifier.height(20.dp))
 
             Button(
-                onClick = { viewModel.salvar(userId) },
+                onClick = { viewModel.salvar() },
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Text("Guardar Seleção")

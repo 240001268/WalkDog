@@ -55,34 +55,32 @@ fun LoginPage(
         Spacer(modifier = Modifier.height(60.dp))
 
         Box(
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier.size(200.dp),
             contentAlignment = Alignment.Center
         ) {
-            Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                Box(modifier = Modifier.size(180.dp)) {
-                    LogotipoComponent()
-                }
-
-                Spacer(Modifier.height(12.dp))
-
-                Text(
-                    "WalkDog",
-                    fontSize = 32.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = Color(0xFF6A1B9A)
-                )
-
-                Spacer(Modifier.height(12.dp))
-
-                Text(
-                    "O melhor site para o seu melhor amigo",
-                    color = Color.Gray,
-                    fontSize = 15.sp
-                )
-            }
+            LogotipoComponent(
+                modifier = Modifier.fillMaxSize()
+            )
         }
 
-        Spacer(modifier = Modifier.height(50.dp))
+        Spacer(Modifier.height(30.dp))
+
+        Text(
+            "WalkDog",
+            fontSize = 32.sp,
+            fontWeight = FontWeight.Bold,
+            color = Color(0xFF6A1B9A)
+        )
+
+        Spacer(Modifier.height(12.dp))
+
+        Text(
+            "A melhor app para o seu patudo",
+            color = Color.Gray,
+            fontSize = 15.sp
+        )
+
+        Spacer(modifier = Modifier.height(40.dp))
 
         TextField(
             value = email,
@@ -171,6 +169,7 @@ fun LoginPage(
         }
 
         Spacer(modifier = Modifier.height(40.dp))
+
     }
 }
 

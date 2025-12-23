@@ -10,21 +10,23 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.walkdog.model.Cao
+import com.example.walkdog.viewmodel.PerfilClienteViewModel
 import java.net.URLEncoder
 import java.nio.charset.StandardCharsets
 
+
 // ------------------------------------------------------------
-// MINI MENU
+// MINI MENU CLIENTE
 // ------------------------------------------------------------
 @Composable
 fun MiniMenuCliente(
@@ -37,10 +39,10 @@ fun MiniMenuCliente(
         modifier = Modifier.fillMaxWidth(),
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
-        MenuButton("Registar Cão", onClick = onRegistarCao)
-        MenuButton("Buscar Fornecedor", onClick = onBuscarFornecedor)
-        MenuButton("Marcar Passeio", onClick = onMarcarPasseio)
-        MenuButton("Histórico de Passeios", onClick = onHistoricoClick)
+        MenuButton("Registar Cão", onRegistarCao)
+        MenuButton("Buscar Fornecedor", onBuscarFornecedor)
+        MenuButton("Marcar Passeio", onMarcarPasseio)
+        MenuButton("Histórico de Passeios", onHistoricoClick)
     }
 }
 
@@ -58,7 +60,7 @@ fun MenuButton(text: String, onClick: () -> Unit) {
             verticalAlignment = Alignment.CenterVertically
         ) {
             Text(
-                text,
+                text = text,
                 fontSize = 17.sp,
                 color = Color(0xFF6A1B9A),
                 fontWeight = FontWeight.SemiBold
@@ -68,54 +70,7 @@ fun MenuButton(text: String, onClick: () -> Unit) {
 }
 
 // ------------------------------------------------------------
-// CARTÃO PERFIL CLIENTE
-// ------------------------------------------------------------
-@Composable
-fun PerfilCardCliente(
-    nome: String,
-    descricao: String,
-    avatarColor: Color,
-    onClick: () -> Unit   // ← novo
-) {
-    Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable { onClick() },
-        shape = RoundedCornerShape(18.dp),
-        colors = CardDefaults.cardColors(Color.White),
-        elevation = CardDefaults.cardElevation(4.dp)
-    ) {
-        Row(
-            modifier = Modifier.padding(20.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Box(
-                modifier = Modifier
-                    .size(80.dp)
-                    .clip(CircleShape)
-                    .background(avatarColor),
-                contentAlignment = Alignment.Center
-            ) {
-                Text(
-                    nome.first().toString(),
-                    color = Color.White,
-                    fontSize = 32.sp,
-                    fontWeight = FontWeight.Bold
-                )
-            }
-
-            Spacer(modifier = Modifier.width(16.dp))
-
-            Column {
-                Text(nome, fontWeight = FontWeight.Bold, fontSize = 22.sp)
-                Text(descricao, fontSize = 15.sp, color = Color.Gray)
-            }
-        }
-    }
-}
-
-// ------------------------------------------------------------
-// CARTÃO DO CÃO → CLICÁVEL PARA PERFIL
+// CARD DO CÃO
 // ------------------------------------------------------------
 @Composable
 fun CaoCard(
@@ -134,7 +89,6 @@ fun CaoCard(
             modifier = Modifier.padding(16.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-
             Box(
                 modifier = Modifier
                     .size(60.dp)
@@ -165,41 +119,22 @@ fun CaoCard(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PerfilClienteScreen(
-    userId: String?,
+    userId: String,
     onRegistarCao: () -> Unit,
     onBuscarFornecedor: () -> Unit,
     onMarcarPasseio: () -> Unit,
-    onCaoClick: (String) -> Unit,
+    onCaoClick: (Cao) -> Unit,
     onHistoricoClick: () -> Unit,
     onBackClick: () -> Unit,
     onEditarCliente: (String) -> Unit
-
 ) {
-    // MOCK dos cães do cliente
-    val caes = listOf(
-        Cao(
-            nome = "Rex",
-            raca = "Pastor Alemão",
-            porte = "Grande",
-            peso = "32",
-            localidade = "Lisboa",
-            nomeDono = "João Silva",
-            emailDono = "joao@gmail.com",
-            telefoneDono = "912345678",
-            localidadeDono = "Lisboa"
-        ),
-        Cao(
-            nome = "Bolt",
-            raca = "Labrador",
-            porte = "Médio",
-            peso = "25",
-            localidade = "Lisboa",
-            nomeDono = "João Silva",
-            emailDono = "joao@gmail.com",
-            telefoneDono = "912345678",
-            localidadeDono = "Lisboa"
-        )
-    )
+    val viewModel: PerfilClienteViewModel = viewModel()
+    val state by viewModel.state.collectAsState()
+
+    // Buscar dados do cliente
+    LaunchedEffect(Unit) {
+        viewModel.getClienteData()
+    }
 
     Scaffold(
         topBar = {
@@ -222,21 +157,74 @@ fun PerfilClienteScreen(
         Column(
             modifier = Modifier
                 .padding(padding)
+                .padding(16.dp)
                 .fillMaxSize()
-                .verticalScroll(rememberScrollState())
-                .padding(16.dp),
+                .verticalScroll(rememberScrollState()),
             verticalArrangement = Arrangement.spacedBy(22.dp)
         ) {
 
-            // Perfil do cliente
-            PerfilCardCliente(
-                nome = "João Silva",
-                descricao = "Cliente desde 2024 | Lisboa",
-                avatarColor = Color(0xFF8E67FF),
-                onClick = { onEditarCliente("cliente1") }   // ← usa o ID real do cliente
-            )
+            // -------------------------------
+            // LOADING / ERRO
+            // -------------------------------
+            if (state.loading) {
+                CircularProgressIndicator()
+            }
 
-            // Mini menu + histórico
+            state.error?.let {
+                Text("Erro: $it", color = Color.Red)
+            }
+
+            // -------------------------------
+            // CARD DO PERFIL DO CLIENTE
+            // -------------------------------
+            state.cliente?.let { cliente ->
+
+                val nome = cliente.data["nome"]?.toString() ?: ""
+                val localidade = cliente.data["localidade"]?.toString() ?: ""
+
+                Card(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable {
+                            state.cliente?.data?.get("userId")?.toString()?.let {
+                                onEditarCliente(it)
+                            }
+                        },
+                    shape = RoundedCornerShape(18.dp),
+                    colors = CardDefaults.cardColors(Color.White),
+                    elevation = CardDefaults.cardElevation(4.dp)
+                ) {
+                    Row(
+                        modifier = Modifier.padding(20.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .size(80.dp)
+                                .clip(CircleShape)
+                                .background(Color(0xFF8E67FF)),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text(
+                                nome.firstOrNull()?.toString() ?: "",
+                                color = Color.White,
+                                fontSize = 32.sp,
+                                fontWeight = FontWeight.Bold
+                            )
+                        }
+
+                        Spacer(modifier = Modifier.width(16.dp))
+
+                        Column {
+                            Text(nome, fontWeight = FontWeight.Bold, fontSize = 22.sp)
+                            Text(localidade, fontSize = 15.sp, color = Color.Gray)
+                        }
+                    }
+                }
+            }
+            // -------------------------------
+            // MINI MENU
+            // -------------------------------
             MiniMenuCliente(
                 onRegistarCao = onRegistarCao,
                 onBuscarFornecedor = onBuscarFornecedor,
@@ -244,20 +232,34 @@ fun PerfilClienteScreen(
                 onHistoricoClick = onHistoricoClick
             )
 
-            // Secção de cães
+            // -------------------------------
+            // CÃES REGISTADOS
+            // -------------------------------
             Text("Cães Registados", fontWeight = FontWeight.Bold, fontSize = 20.sp)
 
             Column(
-                modifier = Modifier.fillMaxWidth(),
                 verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
-                caes.forEach { cao ->
+                state.caes.forEach { doc ->
+
+                    val cao = Cao(
+                        nome = doc.data["nome"]?.toString() ?: "",
+                        raca = doc.data["raca"]?.toString() ?: "",
+                        porte = doc.data["porte"]?.toString() ?: "",
+                        peso = doc.data["peso"]?.toString() ?: "",
+                        localidade = doc.data["localidade"]?.toString() ?: "",
+                        fotoUrl = null, // será resolvido depois via fotoId
+
+                        // estes dados vêm do cliente (mantemos compatibilidade)
+                        nomeDono = state.cliente?.data?.get("nome")?.toString() ?: "",
+                        emailDono = state.cliente?.data?.get("email")?.toString() ?: "",
+                        telefoneDono = state.cliente?.data?.get("telefone")?.toString() ?: "",
+                        localidadeDono = state.cliente?.data?.get("localidade")?.toString() ?: ""
+                    )
+
                     CaoCard(
                         cao = cao,
-                        onCaoClick = { selectedCao ->
-                            val route = buildPerfilCaoRoute(selectedCao)
-                            onCaoClick(route) // envia a rota completa
-                        }
+                        onCaoClick = { onCaoClick(cao) }
                     )
                 }
             }
@@ -266,11 +268,12 @@ fun PerfilClienteScreen(
 }
 
 // ------------------------------------------------------------
-// HELPER – GERA ROTA COMPLETA COM TODOS OS CAMPOS
+// HELPER – ROTA DO PERFIL DO CÃO
 // ------------------------------------------------------------
 fun buildPerfilCaoRoute(cao: Cao): String {
 
-    fun enc(s: String) = URLEncoder.encode(s, StandardCharsets.UTF_8.toString())
+    fun enc(value: String) =
+        URLEncoder.encode(value, StandardCharsets.UTF_8.toString())
 
     return "perfil_cao/" +
             "${enc(cao.nome)}/" +
@@ -283,19 +286,4 @@ fun buildPerfilCaoRoute(cao: Cao): String {
             "${enc(cao.emailDono)}/" +
             "${enc(cao.telefoneDono)}/" +
             "${enc(cao.localidadeDono)}"
-}
-
-@Preview(showBackground = true)
-@Composable
-fun PreviewPerfilClienteScreen() {
-    PerfilClienteScreen(
-        userId = "cliente1",
-        onRegistarCao = {},
-        onBuscarFornecedor = {},
-        onMarcarPasseio = {},
-        onCaoClick = {},
-        onHistoricoClick = {},
-        onBackClick = {},
-        onEditarCliente = { _ -> }
-    )
 }

@@ -25,23 +25,28 @@ import com.example.walkdog.viewmodel.PerfilFornecedorViewModel
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PerfilFornecedorScreen(
-    userId: String,
-    onLogoutClick: () -> Unit = {},
-    onEditPerfil: (String) -> Unit = {},
-    onEscolherPasseiosClick: (String) -> Unit = {},
+    onLogoutClick: () -> Unit,
+    onEditPerfil: (String) -> Unit,
+    onEscolherPasseiosClick: () -> Unit,
     onScheduleClick: (String, Int, Int) -> Unit
 ) {
     val viewModel: PerfilFornecedorViewModel = viewModel()
     val state by viewModel.state.collectAsState()
 
-    // Buscar dados ao entrar
-    LaunchedEffect(userId) {
-        viewModel.getFornecedorData(userId)
-        viewModel.getPasseiosFornecedor(userId)
+    // 🔙 Back = Logout
+    BackHandler { onLogoutClick() }
+
+    // 🔄 Carregar dados do fornecedor
+    LaunchedEffect(Unit) {
+        viewModel.getFornecedorData()
     }
 
-    // Back = Logout
-    BackHandler { onLogoutClick() }
+    // 🔄 Carregar passeios quando o fornecedor existir
+    LaunchedEffect(state.fornecedor) {
+        if (state.fornecedor != null) {
+            viewModel.getPasseiosFornecedor()
+        }
+    }
 
     Scaffold(
         topBar = {
@@ -79,18 +84,18 @@ fun PerfilFornecedorScreen(
             verticalArrangement = Arrangement.spacedBy(20.dp)
         ) {
 
-            // Loading
+            // ⏳ Loading
             if (state.loading) {
                 CircularProgressIndicator()
             }
 
-            // Erro
+            // ❌ Erro
             state.error?.let {
                 Text("Erro: $it", color = Color.Red)
             }
 
             // --------------------------------------------------------------
-            // CARD DO FORNECEDOR (CLICÁVEL PARA EDITAR PERFIL)
+            // CARD DO FORNECEDOR
             // --------------------------------------------------------------
             state.fornecedor?.let { fornecedor ->
 
@@ -100,7 +105,7 @@ fun PerfilFornecedorScreen(
                 Card(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .clickable { onEditPerfil(userId) },
+                        .clickable { onEditPerfil(fornecedor.id) },
                     shape = RoundedCornerShape(16.dp),
                     colors = CardDefaults.cardColors(Color.White),
                     elevation = CardDefaults.cardElevation(4.dp)
@@ -130,7 +135,7 @@ fun PerfilFornecedorScreen(
             // BOTÃO → ESCOLHER PASSEIOS
             // --------------------------------------------------------------
             Button(
-                onClick = { onEscolherPasseiosClick(userId) },
+                onClick = onEscolherPasseiosClick,
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(52.dp),
@@ -146,7 +151,7 @@ fun PerfilFornecedorScreen(
             }
 
             // --------------------------------------------------------------
-            // LISTA DOS PASSEIOS DO FORNECEDOR
+            // LISTA DOS PASSEIOS
             // --------------------------------------------------------------
             Text(
                 "Passeios Disponíveis",
@@ -190,19 +195,24 @@ fun PasseioFornecedorCard(
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
 
-            Text("Descrição: $descricao", fontSize = 18.sp, fontWeight = FontWeight.Bold)
+            Text(
+                text = "Descrição: $descricao",
+                fontSize = 18.sp,
+                fontWeight = FontWeight.Bold
+            )
+
             Spacer(Modifier.height(6.dp))
 
             Text("Duração: $duracaoStr min", fontSize = 15.sp)
-            Text("Preço: €$precoStr", fontSize = 15.sp, fontWeight = FontWeight.Medium)
+            Text("Preço: €$precoStr", fontSize = 15.sp)
 
             Spacer(Modifier.height(12.dp))
 
             Button(
                 onClick = onAgendar,
+                modifier = Modifier.fillMaxWidth(),
                 colors = ButtonDefaults.buttonColors(Color(0xFF6A1B9A)),
-                shape = RoundedCornerShape(12.dp),
-                modifier = Modifier.fillMaxWidth()
+                shape = RoundedCornerShape(12.dp)
             ) {
                 Text("Agendar Passeio", color = Color.White)
             }
