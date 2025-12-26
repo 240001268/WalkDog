@@ -16,6 +16,11 @@ import com.example.walkdog.componentes.LogotipoComponent
 import com.example.walkdog.service.AppwriteService
 import com.example.walkdog.viewmodel.LoginViewModel
 import com.example.walkdog.viewmodel.LoginViewModelFactory
+import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.input.VisualTransformation
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Visibility
+import androidx.compose.material.icons.filled.VisibilityOff
 
 @Composable
 fun LoginPage(
@@ -32,6 +37,8 @@ fun LoginPage(
 
     var email by remember { mutableStateOf("") }
     var senha by remember { mutableStateOf("") }
+
+    var senhaVisivel by remember { mutableStateOf(false) }
 
     LaunchedEffect(state.success) {
         state.userId?.let { userId ->
@@ -97,7 +104,29 @@ fun LoginPage(
             onValueChange = { senha = it },
             modifier = Modifier.fillMaxWidth(),
             label = { Text("Senha") },
-            singleLine = true
+            singleLine = true,
+
+            visualTransformation = if (senhaVisivel)
+                VisualTransformation.None
+            else
+                PasswordVisualTransformation(),
+
+            trailingIcon = {
+                val icon = if (senhaVisivel)
+                    Icons.Default.VisibilityOff
+                else
+                    Icons.Default.Visibility
+
+                IconButton(onClick = { senhaVisivel = !senhaVisivel }) {
+                    Icon(
+                        imageVector = icon,
+                        contentDescription = if (senhaVisivel)
+                            "Ocultar senha"
+                        else
+                            "Mostrar senha"
+                    )
+                }
+            }
         )
 
         Spacer(modifier = Modifier.height(10.dp))

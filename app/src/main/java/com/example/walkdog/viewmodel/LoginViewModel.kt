@@ -19,6 +19,10 @@ data class LoginUiState(
     val userId: String? = null
 )
 
+private val DB_ID = "69236f45003447bc5844"
+private val COLLECTION_CLIENTES = "69236f5200282814eb3c"
+private val COLLECTION_FORNECEDORES = "69236f93001828d82b6f"
+
 class LoginViewModel(
     private val appwrite: AppwriteService
 ) : ViewModel() {
@@ -41,17 +45,64 @@ class LoginViewModel(
                 account.createEmailPasswordSession(email, password)
 
                 val user = account.get()
+                val userId = user.id
 
+                val existeCliente = try {
+                    appwrite.databases.getDocument(
+                        databaseId = DB_ID,
+                        collectionId = COLLECTION_CLIENTES,
+                        documentId = userId
+                    )
+                    true
+                } catch (e: Exception) {
+                    false
+                }
+
+                val existeFornecedor = try {
+                    appwrite.databases.getDocument(
+                        databaseId = DB_ID,
+                        collectionId = COLLECTION_FORNECEDORES,
+                        documentId = userId
+                    )
+                    true
+                } catch (e: Exception) {
+                    false
+                }
+
+                // 🔐 VALIDAÇÃO DE TIPO
+                when (tipo) {
+                    "cliente" -> {
+                        if (!existeCliente) {
+                            account.deleteSession("current")
+                            _state.value = LoginUiState(
+                                error = "Esta conta não é de cliente."
+                            )
+                            return@launch
+                        }
+                    }
+
+                    "fornecedor" -> {
+                        if (!existeFornecedor) {
+                            account.deleteSession("current")
+                            _state.value = LoginUiState(
+                                error = "Esta conta não é de fornecedor."
+                            )
+                            return@launch
+                        }
+                    }
+                }
+
+                // ✅ LOGIN VÁLIDO
                 _state.value = LoginUiState(
                     success = true,
                     route = tipo,
-                    userId = user.id
+                    userId = userId
                 )
 
             } catch (e: AppwriteException) {
-                _state.value = LoginUiState(error = "Erro Appwrite: ${e.message}")
+                _state.value = LoginUiState(error = e.message)
             } catch (e: Exception) {
-                _state.value = LoginUiState(error = e.message ?: "Erro desconhecido")
+                _state.value = LoginUiState(error = "Erro inesperado")
             }
         }
     }

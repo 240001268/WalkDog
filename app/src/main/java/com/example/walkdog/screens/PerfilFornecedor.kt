@@ -28,7 +28,8 @@ fun PerfilFornecedorScreen(
     onLogoutClick: () -> Unit,
     onEditPerfil: (String) -> Unit,
     onEscolherPasseiosClick: () -> Unit,
-    onScheduleClick: (String, Int, Int) -> Unit
+    onVerPasseiosClick: () -> Unit,
+    onScheduleClick: (String) -> Unit
 ) {
     val viewModel: PerfilFornecedorViewModel = viewModel()
     val state by viewModel.state.collectAsState()
@@ -151,6 +152,25 @@ fun PerfilFornecedorScreen(
             }
 
             // --------------------------------------------------------------
+            // BOTÃO → VER MEUS PASSEIOS
+            // --------------------------------------------------------------
+            Button(
+                onClick = { onVerPasseiosClick() },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(52.dp),
+                colors = ButtonDefaults.buttonColors(Color(0xFF6A1B9A)),
+                shape = RoundedCornerShape(14.dp)
+            ) {
+                Text(
+                    "Ver meus Passeios",
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 17.sp,
+                    color = Color.White
+                )
+            }
+
+            // --------------------------------------------------------------
             // LISTA DOS PASSEIOS
             // --------------------------------------------------------------
             Text(
@@ -170,7 +190,7 @@ fun PerfilFornecedorScreen(
                     duracaoStr = duracao.toString(),
                     precoStr = preco.toString(),
                     onAgendar = {
-                        onScheduleClick("passeio", duracao, preco)
+                        onScheduleClick(descricao)
                     }
                 )
             }

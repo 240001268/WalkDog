@@ -79,6 +79,7 @@ dependencies {
     // --- APPWRITE SDK ---
     implementation("io.appwrite:sdk-for-android:6.0.0")
     implementation(libs.androidx.compose.foundation)
+    implementation(libs.androidx.room.ktx)
 
     // --- TESTES ---
     testImplementation(libs.junit)

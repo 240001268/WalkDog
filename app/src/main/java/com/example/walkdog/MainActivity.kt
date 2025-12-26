@@ -19,6 +19,7 @@ import com.example.walkdog.service.AppwriteService
 import com.example.walkdog.ui.theme.WalkDogTheme
 import com.example.walkdog.viewmodel.LoginViewModel
 import com.example.walkdog.viewmodel.LoginViewModelFactory
+import com.example.walkdog.screens.PasseiosEstadoScreen
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -96,7 +97,7 @@ class MainActivity : ComponentActivity() {
                                     navController.navigate(buildPerfilCaoRoute(cao))
                                 },
                                 onHistoricoClick = {
-                                    navController.navigate("historico_passeios")
+                                    navController.navigate("passeios_estado")
                                 },
                                 onBackClick = {
                                     loginVM.logout(navController)
@@ -104,15 +105,6 @@ class MainActivity : ComponentActivity() {
                                 onEditarCliente = { userId ->
                                     navController.navigate("editar_cliente/$userId")
                                 }
-                            )
-                        }
-
-                        // -----------------------
-                        // HISTÓRICO
-                        // -----------------------
-                        composable("historico_passeios") {
-                            HistoricoPasseiosScreen(
-                                onBackClick = { navController.navigateUp() }
                             )
                         }
 
@@ -130,11 +122,15 @@ class MainActivity : ComponentActivity() {
                                 onEscolherPasseiosClick = {
                                     navController.navigate("escolher_passeios")
                                 },
-                                onScheduleClick = { tipo, minutos, preco ->
+                                onScheduleClick = { tipoPasseio ->
                                     navController.navigate(
-                                        "marcar_passeio/$tipo/$minutos/$preco"
+                                        "passeios_marcados/$tipoPasseio"
                                     )
-                                }
+                                },
+                                onVerPasseiosClick = {
+                                    navController.navigate("passeios_estado")
+                                },
+
                             )
                         }
 
@@ -228,6 +224,24 @@ class MainActivity : ComponentActivity() {
                                 onVerPerfil = {
                                     navController.navigate("perfil_fornecedor")
                                 }
+                            )
+                        }
+
+                        composable("passeios_marcados/{tipo}") { backStack ->
+                            val tipo = backStack.arguments?.getString("tipo") ?: ""
+                            PasseiosMarcadosFornecedorScreen(
+                                tipoPasseio = tipo,
+                                onBackClick = { navController.popBackStack() }
+                            )
+                        }
+
+                        // -----------------------
+                        // PASSEIOS ESTADO
+                        // -----------------------
+
+                        composable("passeios_estado") {
+                            PasseiosEstadoScreen(
+                                onBackClick = { navController.popBackStack() }
                             )
                         }
 

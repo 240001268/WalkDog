@@ -30,6 +30,7 @@ fun MarcarPasseioScreen(
     LaunchedEffect(Unit) {
         viewModel.loadCaesCliente()
         viewModel.loadPasseios()
+        viewModel.loadFornecedores()
     }
 
     LaunchedEffect(state.success) {
@@ -41,6 +42,7 @@ fun MarcarPasseioScreen(
     // --------------------------------
     var localidade by remember { mutableStateOf("") }
     var horaInicio by remember { mutableStateOf("") }
+    var caoNome by remember { mutableStateOf("") }
 
     // --------------------------------
     // UI
@@ -114,6 +116,7 @@ fun MarcarPasseioScreen(
                             text = { Text(nome) },
                             onClick = {
                                 selectedDogLabel = nome
+                                caoNome = nome
                                 viewModel.selecionarCao(doc.id)
                                 expandedDog = false
                             }
@@ -145,7 +148,7 @@ fun MarcarPasseioScreen(
             )
 
             // --------------------------------------------------
-            // SELECIONAR PASSEIO (descrição + duração)
+            // SELECIONAR PASSEIO
             // --------------------------------------------------
             var expandedPasseio by remember { mutableStateOf(false) }
             var passeioLabel by remember { mutableStateOf("") }
@@ -178,11 +181,56 @@ fun MarcarPasseioScreen(
                         val preco = doc.data["preco"]?.toString() ?: ""
 
                         DropdownMenuItem(
-                            text = { Text("$descricao - $duracao ($preco)") },
+                            text = { Text("$descricao - $duracao (€$preco)") },
                             onClick = {
                                 passeioLabel = "$descricao - $duracao"
                                 viewModel.selecionarPasseio(doc)
                                 expandedPasseio = false
+                            }
+                        )
+                    }
+                }
+            }
+
+            // --------------------------------------------------
+            // SELECIONAR FORNECEDOR
+            // --------------------------------------------------
+            var expandedFornecedor by remember { mutableStateOf(false) }
+            var fornecedorLabel by remember { mutableStateOf("") }
+
+            ExposedDropdownMenuBox(
+                expanded = expandedFornecedor,
+                onExpandedChange = { expandedFornecedor = !expandedFornecedor }
+            ) {
+                OutlinedTextField(
+                    value = fornecedorLabel,
+                    onValueChange = {},
+                    readOnly = true,
+                    label = { Text("Fornecedor") },
+                    trailingIcon = {
+                        ExposedDropdownMenuDefaults.TrailingIcon(expandedFornecedor)
+                    },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .menuAnchor(MenuAnchorType.PrimaryNotEditable),
+                    shape = RoundedCornerShape(12.dp)
+                )
+
+                ExposedDropdownMenu(
+                    expanded = expandedFornecedor,
+                    onDismissRequest = { expandedFornecedor = false }
+                ) {
+                    state.fornecedores.forEach { doc ->
+                        val nome = doc.data["nome"]?.toString() ?: ""
+                        val localidadeFornecedor =
+                            doc.data["localidade"]?.toString() ?: ""
+
+                        DropdownMenuItem(
+                            text = { Text("$nome - $localidadeFornecedor") },
+                            onClick = {
+                                fornecedorLabel = "$nome - $localidadeFornecedor"
+                                viewModel.selecionarFornecedor(doc.id)
+                                expandedFornecedor = false
                             }
                         )
                     }
@@ -211,11 +259,15 @@ fun MarcarPasseioScreen(
                 Button(
                     onClick = {
                         viewModel.confirmarPasseio(
+                            caoNome = caoNome,
                             localidade = localidade,
                             horaInicio = horaInicio
                         )
                     },
-                    enabled = state.precoFinal.isNotBlank() && !state.loading,
+                    enabled =
+                        state.precoFinal.isNotBlank() &&
+                                state.fornecedorSelecionadoId != null &&
+                                !state.loading,
                     shape = RoundedCornerShape(12.dp),
                     colors = ButtonDefaults.buttonColors(
                         containerColor = Color(0xFF6A1B9A)
