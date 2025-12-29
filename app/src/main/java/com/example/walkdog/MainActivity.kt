@@ -255,9 +255,31 @@ class MainActivity : ComponentActivity() {
 
                         composable("passeios_estado") {
                             PasseiosEstadoScreen(
+                                onBackClick = { navController.navigateUp() },
+                                onAvaliarFornecedor = { passeioId, fornecedorId ->
+                                    navController.navigate(
+                                        "avaliar_fornecedor/$passeioId/$fornecedorId"
+                                    )
+                                }
+                            )
+                        }
+
+                        // -----------------------
+                        // AVALIAR FORNECEDOR
+                        // -----------------------
+
+                        composable("avaliar_fornecedor/{passeioId}/{fornecedorId}") { backStackEntry ->
+                            val passeioId = backStackEntry.arguments?.getString("passeioId")!!
+                            val fornecedorId = backStackEntry.arguments?.getString("fornecedorId")!!
+
+                            AvaliarFornecedorScreen(
+                                passeioId = passeioId,
+                                fornecedorId = fornecedorId,
+                                onSuccess = { navController.popBackStack() },
                                 onBackClick = { navController.popBackStack() }
                             )
                         }
+
 
                         // -----------------------
                         // PERFIL CÃO (LEGADO)

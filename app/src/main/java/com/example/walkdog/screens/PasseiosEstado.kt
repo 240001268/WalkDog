@@ -25,7 +25,8 @@ import androidx.compose.ui.draw.clip
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PasseiosEstadoScreen(
-    onBackClick: () -> Unit
+    onBackClick: () -> Unit,
+    onAvaliarFornecedor: (passeioId: String, fornecedorId: String) -> Unit
 ) {
     val viewModel: PasseiosEstadoViewModel = viewModel()
     val state by viewModel.state.collectAsState()
@@ -114,11 +115,29 @@ fun PasseiosEstadoScreen(
             // LISTA DE PASSEIOS
             // --------------------------------------------------
             state.passeios.forEach { doc ->
+
+                val userId = state.userId
+                val fornecedorId = doc.data["fornecedorId"]?.toString()
+                val estado = doc.data["estado"]?.toString()
+                val avaliado = doc.data["avaliado"] as? Boolean ?: false
+
+                val podeEditarEstado =
+                    state.isFornecedor && fornecedorId == userId
+
+                val podeAvaliar =
+                    !state.isFornecedor &&
+                            estado == "concluido" &&
+                            !avaliado
+
                 PasseioEstadoCard(
                     doc = doc,
-                    podeEditar = state.isFornecedor,
+                    podeEditarEstado = podeEditarEstado,
+                    podeAvaliar = podeAvaliar,
                     onEstadoChange = { novoEstado ->
                         viewModel.atualizarEstadoPasseio(doc.id, novoEstado)
+                    },
+                    onAvaliar = {
+                        onAvaliarFornecedor(doc.id, fornecedorId!!)
                     }
                 )
             }
@@ -129,8 +148,10 @@ fun PasseiosEstadoScreen(
 @Composable
 fun PasseioEstadoCard(
     doc: Document<Map<String, Any>>,
-    podeEditar: Boolean,
-    onEstadoChange: (String) -> Unit
+    podeEditarEstado: Boolean,
+    podeAvaliar: Boolean,
+    onEstadoChange: (String) -> Unit,
+    onAvaliar: () -> Unit
 ) {
     val descricao = doc.data["descricao"]?.toString() ?: "Passeio"
     val cao = doc.data["Cao"]?.toString() ?: "-"
@@ -147,6 +168,19 @@ fun PasseioEstadoCard(
         "andamento" -> Color(0xFF0277BD)
         "concluido" -> Color(0xFF616161)
         else -> Color.Gray
+    }
+
+    if (podeAvaliar) {
+        Spacer(Modifier.height(12.dp))
+
+        Button(
+            onClick = onAvaliar,
+            modifier = Modifier.fillMaxWidth(),
+            colors = ButtonDefaults.buttonColors(Color(0xFF6A1B9A)),
+            shape = RoundedCornerShape(12.dp)
+        ) {
+            Text("Avaliar Fornecedor", color = Color.White)
+        }
     }
 
     Card(
@@ -224,7 +258,7 @@ fun PasseioEstadoCard(
             // --------------------------------------------------
             // ESTADO
             // --------------------------------------------------
-            if (podeEditar) {
+            if (podeEditarEstado) {
 
                 var expanded by remember { mutableStateOf(false) }
 
