@@ -13,6 +13,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.walkdog.viewmodel.PasseiosMarcadosFornecedorViewModel
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+
 
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -34,7 +36,11 @@ fun PasseiosMarcadosFornecedorScreen(
                 title = { Text("Pedidos de Passeio", color = Color.White) },
                 navigationIcon = {
                     IconButton(onClick = onBackClick) {
-                        Icon(Icons.Default.ArrowBack, null, tint = Color.White)
+                        Icon(
+                            Icons.AutoMirrored.Filled.ArrowBack,
+                            contentDescription = "Voltar",
+                            tint = Color.White
+                        )
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(Color(0xFF6A1B9A))
