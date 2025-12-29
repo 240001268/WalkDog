@@ -29,37 +29,27 @@ class PerfilFornecedorViewModel : ViewModel() {
     // ---------------------------------------------------------
     // 1️⃣ Buscar dados do fornecedor (POR userId)
     // ---------------------------------------------------------
-    fun getFornecedorData() {
+    fun getFornecedorData(fornecedorId: String) {
         viewModelScope.launch {
             try {
                 _state.value = _state.value.copy(loading = true)
 
-                val user = AppwriteService.account.get()
-
-                val result = AppwriteService.databases.listDocuments(
+                val fornecedor = AppwriteService.databases.getDocument(
                     databaseId = DB_ID,
                     collectionId = COLLECTION_FORNECEDOR,
-                    queries = listOf(
-                        Query.equal("userId", user.id)
-                    )
+                    documentId = fornecedorId
                 )
 
-                if (result.documents.isNotEmpty()) {
-                    _state.value = _state.value.copy(
-                        fornecedor = result.documents.first(),
-                        loading = false
-                    )
-                } else {
-                    _state.value = _state.value.copy(
-                        error = "Fornecedor não encontrado",
-                        loading = false
-                    )
-                }
+                _state.value = _state.value.copy(
+                    fornecedor = fornecedor,
+                    loading = false,
+                    error = null
+                )
 
             } catch (e: Exception) {
                 Log.e("PERFIL_FORNECEDOR", "Erro ao obter fornecedor", e)
                 _state.value = _state.value.copy(
-                    error = e.message,
+                    error = "Fornecedor não encontrado",
                     loading = false
                 )
             }
@@ -100,6 +90,43 @@ class PerfilFornecedorViewModel : ViewModel() {
                 Log.e("PERFIL_FORNECEDOR", "Erro ao carregar passeios", e)
                 _state.value = _state.value.copy(
                     error = e.message
+                )
+            }
+        }
+    }
+
+    fun getFornecedorDataDoUserLogado() {
+        viewModelScope.launch {
+            try {
+                _state.value = _state.value.copy(loading = true)
+
+                val user = AppwriteService.account.get()
+
+                val result = AppwriteService.databases.listDocuments(
+                    databaseId = DB_ID,
+                    collectionId = COLLECTION_FORNECEDOR,
+                    queries = listOf(
+                        Query.equal("userId", user.id)
+                    )
+                )
+
+                if (result.documents.isNotEmpty()) {
+                    _state.value = _state.value.copy(
+                        fornecedor = result.documents.first(),
+                        loading = false,
+                        error = null
+                    )
+                } else {
+                    _state.value = _state.value.copy(
+                        error = "Fornecedor não encontrado",
+                        loading = false
+                    )
+                }
+
+            } catch (e: Exception) {
+                _state.value = _state.value.copy(
+                    error = e.message,
+                    loading = false
                 )
             }
         }

@@ -113,6 +113,7 @@ class MainActivity : ComponentActivity() {
                         // -----------------------
                         composable("perfil_fornecedor") {
                             PerfilFornecedorScreen(
+                                fornecedorId = null,
                                 onLogoutClick = {
                                     loginVM.logout(navController)
                                 },
@@ -123,14 +124,27 @@ class MainActivity : ComponentActivity() {
                                     navController.navigate("escolher_passeios")
                                 },
                                 onScheduleClick = { tipoPasseio ->
-                                    navController.navigate(
-                                        "passeios_marcados/$tipoPasseio"
-                                    )
+                                    navController.navigate("passeios_marcados/$tipoPasseio")
                                 },
                                 onVerPasseiosClick = {
                                     navController.navigate("passeios_estado")
                                 },
 
+                            )
+                        }
+
+                        composable("perfil_fornecedor/{fornecedorId}") { backStackEntry ->
+                            val fornecedorId = backStackEntry.arguments?.getString("fornecedorId")!!
+
+                            PerfilFornecedorScreen(
+                                fornecedorId = fornecedorId,   // 👈 PERFIL PÚBLICO
+                                onLogoutClick = {
+                                    navController.popBackStack()
+                                },
+                                onEditPerfil = {},              // cliente não edita
+                                onEscolherPasseiosClick = {},
+                                onScheduleClick = {},
+                                onVerPasseiosClick = {}
                             )
                         }
 
@@ -221,8 +235,8 @@ class MainActivity : ComponentActivity() {
                         composable("buscar_fornecedores") {
                             BuscarFornecedoresScreen(
                                 onBackClick = { navController.navigateUp() },
-                                onVerPerfil = {
-                                    navController.navigate("perfil_fornecedor")
+                                onVerPerfil = { fornecedorId ->
+                                    navController.navigate("perfil_fornecedor/$fornecedorId")
                                 }
                             )
                         }

@@ -25,6 +25,7 @@ import com.example.walkdog.viewmodel.PerfilFornecedorViewModel
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PerfilFornecedorScreen(
+    fornecedorId: String?,
     onLogoutClick: () -> Unit,
     onEditPerfil: (String) -> Unit,
     onEscolherPasseiosClick: () -> Unit,
@@ -38,8 +39,14 @@ fun PerfilFornecedorScreen(
     BackHandler { onLogoutClick() }
 
     // 🔄 Carregar dados do fornecedor
-    LaunchedEffect(Unit) {
-        viewModel.getFornecedorData()
+    LaunchedEffect(fornecedorId) {
+        if (fornecedorId != null) {
+            // 🔓 Perfil público
+            viewModel.getFornecedorData(fornecedorId)
+        } else {
+            // 🔐 Perfil próprio
+            viewModel.getFornecedorDataDoUserLogado()
+        }
     }
 
     // 🔄 Carregar passeios quando o fornecedor existir
@@ -48,6 +55,7 @@ fun PerfilFornecedorScreen(
             viewModel.getPasseiosFornecedor()
         }
     }
+
 
     Scaffold(
         topBar = {
