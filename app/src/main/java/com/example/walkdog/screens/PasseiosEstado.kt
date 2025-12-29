@@ -114,14 +114,9 @@ fun PasseiosEstadoScreen(
             // LISTA DE PASSEIOS
             // --------------------------------------------------
             state.passeios.forEach { doc ->
-
-                val userId = state.userId
-                val fornecedorId = doc.data["fornecedorId"]?.toString()
-                val podeEditar = state.userId != null && fornecedorId == state.userId
-
                 PasseioEstadoCard(
                     doc = doc,
-                    podeEditar = fornecedorId == userId,
+                    podeEditar = state.isFornecedor,
                     onEstadoChange = { novoEstado ->
                         viewModel.atualizarEstadoPasseio(doc.id, novoEstado)
                     }
@@ -326,7 +321,7 @@ fun InfoRow(
 fun formatHora(hora: String): String {
     return try {
         if (hora.length >= 5) hora.substring(0, 5) else hora
-    } catch (e: Exception) {
+    } catch (_: Exception) {
         hora
     }
 }

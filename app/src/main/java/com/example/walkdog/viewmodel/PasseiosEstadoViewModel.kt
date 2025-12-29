@@ -15,6 +15,7 @@ data class PasseiosEstadoState(
     val passeios: List<Document<Map<String, Any>>> = emptyList(),
     val estadoSelecionado: String = "todos",
     val userId: String? = null,
+    val isFornecedor: Boolean = false,
     val error: String? = null
 )
 
@@ -26,6 +27,8 @@ class PasseiosEstadoViewModel : ViewModel() {
     private val DB_ID = "69236f45003447bc5844"
     private val COLLECTION_PASSEIOS_MARCADOS = "694acd59001d3cf05135"
 
+    private val COLLECTION_FORNECEDORES = "69236f93001828d82b6f"
+
     // --------------------------------------------------
     // CARREGAR PASSEIOS DO USER (CLIENTE OU FORNECEDOR)
     // --------------------------------------------------
@@ -36,6 +39,23 @@ class PasseiosEstadoViewModel : ViewModel() {
 
                 val userId = AppwriteService.account.get().id
                 val estado = _state.value.estadoSelecionado
+
+                val isFornecedor = try {
+                    AppwriteService.databases.getDocument(
+                        databaseId = DB_ID,
+                        collectionId = COLLECTION_FORNECEDORES,
+                        documentId = userId
+                    )
+                    true
+                } catch (_: Exception) {
+                    false
+                }
+
+                _state.value = _state.value.copy(
+                    loading = true,
+                    userId = userId,
+                    isFornecedor = isFornecedor
+                )
 
                 // ✅ Lista de queries
                 val queries = mutableListOf<String>()
