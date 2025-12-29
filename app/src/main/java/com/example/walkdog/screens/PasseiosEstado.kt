@@ -1,6 +1,5 @@
 package com.example.walkdog.screens
 
-import InfoRow
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
