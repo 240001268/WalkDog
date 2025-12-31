@@ -21,9 +21,12 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.walkdog.model.Cao
 import com.example.walkdog.viewmodel.PerfilClienteViewModel
+import coil.compose.AsyncImage
+import androidx.compose.ui.layout.ContentScale
+import com.example.walkdog.utils.buildFotoClienteUrl
+import com.example.walkdog.utils.buildFotoCaoUrl
 import java.net.URLEncoder
 import java.nio.charset.StandardCharsets
-
 
 // ------------------------------------------------------------
 // MINI MENU CLIENTE
@@ -75,12 +78,12 @@ fun MenuButton(text: String, onClick: () -> Unit) {
 @Composable
 fun CaoCard(
     cao: Cao,
-    onCaoClick: (Cao) -> Unit
+    onClick: () -> Unit
 ) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .clickable { onCaoClick(cao) },
+            .clickable { onClick() },
         shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(Color.White),
         elevation = CardDefaults.cardElevation(3.dp)
@@ -89,18 +92,31 @@ fun CaoCard(
             modifier = Modifier.padding(16.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Box(
-                modifier = Modifier
-                    .size(60.dp)
-                    .clip(CircleShape)
-                    .background(Color(0xFF8E67FF)),
-                contentAlignment = Alignment.Center
-            ) {
-                Text(
-                    cao.nome.first().uppercase(),
-                    color = Color.White,
-                    fontWeight = FontWeight.Bold
+
+            // 🐶 FOTO DO CÃO
+            if (!cao.fotoUrl.isNullOrBlank()) {
+                AsyncImage(
+                    model = cao.fotoUrl,
+                    contentDescription = "Foto do cão",
+                    modifier = Modifier
+                        .size(60.dp)
+                        .clip(CircleShape),
+                    contentScale = ContentScale.Crop
                 )
+            } else {
+                Box(
+                    modifier = Modifier
+                        .size(60.dp)
+                        .clip(CircleShape)
+                        .background(Color(0xFF8E67FF)),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        cao.nome.firstOrNull()?.uppercase() ?: "",
+                        color = Color.White,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
             }
 
             Spacer(modifier = Modifier.width(16.dp))
@@ -123,7 +139,7 @@ fun PerfilClienteScreen(
     onRegistarCao: () -> Unit,
     onBuscarFornecedor: () -> Unit,
     onMarcarPasseio: () -> Unit,
-    onCaoClick: (Cao) -> Unit,
+    onCaoClick: (String) -> Unit, // ✅ agora recebe o ID do cão
     onHistoricoClick: () -> Unit,
     onBackClick: () -> Unit,
     onEditarCliente: (String) -> Unit
@@ -131,7 +147,6 @@ fun PerfilClienteScreen(
     val viewModel: PerfilClienteViewModel = viewModel()
     val state by viewModel.state.collectAsState()
 
-    // Buscar dados do cliente
     LaunchedEffect(Unit) {
         viewModel.getClienteData()
     }
@@ -163,22 +178,15 @@ fun PerfilClienteScreen(
             verticalArrangement = Arrangement.spacedBy(22.dp)
         ) {
 
-            // -------------------------------
-            // LOADING / ERRO
-            // -------------------------------
-            if (state.loading) {
-                CircularProgressIndicator()
-            }
+            if (state.loading) CircularProgressIndicator()
 
             state.error?.let {
                 Text("Erro: $it", color = Color.Red)
             }
 
-            // -------------------------------
-            // CARD DO PERFIL DO CLIENTE
-            // -------------------------------
+            // PERFIL CLIENTE
             state.cliente?.let { cliente ->
-
+                val fotoUrl = buildFotoClienteUrl(cliente.data["fotoId"]?.toString())
                 val nome = cliente.data["nome"]?.toString() ?: ""
                 val localidade = cliente.data["localidade"]?.toString() ?: ""
 
@@ -186,9 +194,7 @@ fun PerfilClienteScreen(
                     modifier = Modifier
                         .fillMaxWidth()
                         .clickable {
-                            state.cliente?.data?.get("userId")?.toString()?.let {
-                                onEditarCliente(it)
-                            }
+                            cliente.data["userId"]?.toString()?.let(onEditarCliente)
                         },
                     shape = RoundedCornerShape(18.dp),
                     colors = CardDefaults.cardColors(Color.White),
@@ -198,22 +204,33 @@ fun PerfilClienteScreen(
                         modifier = Modifier.padding(20.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Box(
-                            modifier = Modifier
-                                .size(80.dp)
-                                .clip(CircleShape)
-                                .background(Color(0xFF8E67FF)),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Text(
-                                nome.firstOrNull()?.toString() ?: "",
-                                color = Color.White,
-                                fontSize = 32.sp,
-                                fontWeight = FontWeight.Bold
+                        if (fotoUrl != null) {
+                            AsyncImage(
+                                model = fotoUrl,
+                                contentDescription = "Foto do cliente",
+                                modifier = Modifier
+                                    .size(80.dp)
+                                    .clip(CircleShape),
+                                contentScale = ContentScale.Crop
                             )
+                        } else {
+                            Box(
+                                modifier = Modifier
+                                    .size(80.dp)
+                                    .clip(CircleShape)
+                                    .background(Color(0xFF8E67FF)),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Text(
+                                    nome.firstOrNull()?.toString() ?: "",
+                                    color = Color.White,
+                                    fontSize = 32.sp,
+                                    fontWeight = FontWeight.Bold
+                                )
+                            }
                         }
 
-                        Spacer(modifier = Modifier.width(16.dp))
+                        Spacer(Modifier.width(16.dp))
 
                         Column {
                             Text(nome, fontWeight = FontWeight.Bold, fontSize = 22.sp)
@@ -222,24 +239,17 @@ fun PerfilClienteScreen(
                     }
                 }
             }
-            // -------------------------------
-            // MINI MENU
-            // -------------------------------
+
             MiniMenuCliente(
-                onRegistarCao = onRegistarCao,
-                onBuscarFornecedor = onBuscarFornecedor,
-                onMarcarPasseio = onMarcarPasseio,
-                onHistoricoClick = onHistoricoClick
+                onRegistarCao,
+                onBuscarFornecedor,
+                onMarcarPasseio,
+                onHistoricoClick
             )
 
-            // -------------------------------
-            // CÃES REGISTADOS
-            // -------------------------------
             Text("Cães Registados", fontWeight = FontWeight.Bold, fontSize = 20.sp)
 
-            Column(
-                verticalArrangement = Arrangement.spacedBy(12.dp)
-            ) {
+            Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                 state.caes.forEach { doc ->
 
                     val cao = Cao(
@@ -248,18 +258,18 @@ fun PerfilClienteScreen(
                         porte = doc.data["porte"]?.toString() ?: "",
                         peso = doc.data["peso"]?.toString() ?: "",
                         localidade = doc.data["localidade"]?.toString() ?: "",
-                        fotoUrl = null, // será resolvido depois via fotoId
-
-                        // estes dados vêm do cliente (mantemos compatibilidade)
-                        nomeDono = state.cliente?.data?.get("nome")?.toString() ?: "",
-                        emailDono = state.cliente?.data?.get("email")?.toString() ?: "",
-                        telefoneDono = state.cliente?.data?.get("telefone")?.toString() ?: "",
-                        localidadeDono = state.cliente?.data?.get("localidade")?.toString() ?: ""
+                        fotoUrl = buildFotoCaoUrl(doc.data["fotoId"]?.toString()),
+                        nomeDono = "",
+                        emailDono = "",
+                        telefoneDono = "",
+                        localidadeDono = ""
                     )
 
                     CaoCard(
                         cao = cao,
-                        onCaoClick = { onCaoClick(cao) }
+                        onClick = {
+                            onCaoClick(doc.id) // ✅ ID REAL DO CÃO
+                        }
                     )
                 }
             }
@@ -271,9 +281,7 @@ fun PerfilClienteScreen(
 // HELPER – ROTA DO PERFIL DO CÃO
 // ------------------------------------------------------------
 fun buildPerfilCaoRoute(cao: Cao): String {
-
-    fun enc(value: String) =
-        URLEncoder.encode(value, StandardCharsets.UTF_8.toString())
+    fun enc(v: String) = URLEncoder.encode(v, StandardCharsets.UTF_8.toString())
 
     return "perfil_cao/" +
             "${enc(cao.nome)}/" +
@@ -281,9 +289,5 @@ fun buildPerfilCaoRoute(cao: Cao): String {
             "${enc(cao.porte)}/" +
             "${enc(cao.peso)}/" +
             "${enc(cao.localidade)}/" +
-            "${enc(cao.fotoUrl ?: "")}/" +
-            "${enc(cao.nomeDono)}/" +
-            "${enc(cao.emailDono)}/" +
-            "${enc(cao.telefoneDono)}/" +
-            "${enc(cao.localidadeDono)}"
+            "${enc(cao.fotoUrl ?: "")}"
 }

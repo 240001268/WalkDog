@@ -23,6 +23,9 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import coil.compose.rememberAsyncImagePainter
 import com.example.walkdog.viewmodel.EditarFornecedorViewModel
+import com.example.walkdog.utils.buildFotoFornecedorUrl
+
+
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -96,7 +99,9 @@ fun EditarFornecedorScreen(
 
                 // FOTO
                 var fotoUri by remember { mutableStateOf<Uri?>(null) }
-                val fotoAtual = fornecedor["foto"]?.toString()
+                val fotoId = fornecedor["fotoId"]?.toString()
+                val fotoAtualUrl = buildFotoFornecedorUrl(fotoId)
+                val imagemParaMostrar = fotoUri ?: fotoAtualUrl
 
                 val imagePicker = rememberLauncherForActivityResult(
                     ActivityResultContracts.GetContent()
@@ -122,8 +127,8 @@ fun EditarFornecedorScreen(
                             contentAlignment = Alignment.Center
                         ) {
                             Image(
-                                painter = rememberAsyncImagePainter(fotoUri ?: fotoAtual),
-                                contentDescription = null,
+                                painter = rememberAsyncImagePainter(imagemParaMostrar),
+                                contentDescription = "Foto do fornecedor",
                                 modifier = Modifier.fillMaxSize(),
                                 contentScale = ContentScale.Crop
                             )

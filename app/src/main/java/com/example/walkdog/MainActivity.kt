@@ -93,8 +93,8 @@ class MainActivity : ComponentActivity() {
                                 onMarcarPasseio = {
                                     navController.navigate("marcar_passeio")
                                 },
-                                onCaoClick = { cao ->
-                                    navController.navigate(buildPerfilCaoRoute(cao))
+                                onCaoClick = { caoId ->
+                                    navController.navigate("editar_cao/$caoId")
                                 },
                                 onHistoricoClick = {
                                     navController.navigate("passeios_estado")
@@ -280,6 +280,23 @@ class MainActivity : ComponentActivity() {
                             )
                         }
 
+                        // -----------------------
+                        // EDITAR CÃO
+                        // -----------------------
+
+                        composable(
+                            route = "editar_cao/{caoId}",
+                            arguments = listOf(
+                                navArgument("caoId") { type = NavType.StringType }
+                            )
+                        ) { backStackEntry ->
+                            val caoId = backStackEntry.arguments?.getString("caoId")!!
+
+                            EditarCaoScreen(
+                                caoId = caoId,
+                                onBackClick = { navController.navigateUp() }
+                            )
+                        }
 
                         // -----------------------
                         // PERFIL CÃO (LEGADO)

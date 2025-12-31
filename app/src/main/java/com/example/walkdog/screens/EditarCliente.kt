@@ -23,6 +23,8 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import coil.compose.rememberAsyncImagePainter
 import com.example.walkdog.viewmodel.EditarClienteViewModel
+import com.example.walkdog.utils.buildFotoClienteUrl
+
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -81,7 +83,10 @@ fun EditarClienteScreen(
                 var iban by remember { mutableStateOf(cliente["iban"]?.toString() ?: "") }
 
                 var fotoUri by remember { mutableStateOf<Uri?>(null) }
-                val fotoAtual = cliente["foto"]?.toString()
+                val fotoId = cliente["fotoId"]?.toString()
+                val fotoAtualUrl = buildFotoClienteUrl(fotoId)
+
+                val imagemParaMostrar = fotoUri ?: fotoAtualUrl
 
                 val imagePicker = rememberLauncherForActivityResult(
                     ActivityResultContracts.GetContent()
@@ -105,8 +110,8 @@ fun EditarClienteScreen(
                             contentAlignment = Alignment.Center
                         ) {
                             Image(
-                                painter = rememberAsyncImagePainter(fotoUri ?: fotoAtual),
-                                contentDescription = null,
+                                painter = rememberAsyncImagePainter(imagemParaMostrar),
+                                contentDescription = "Foto do cliente",
                                 modifier = Modifier.fillMaxSize(),
                                 contentScale = ContentScale.Crop
                             )

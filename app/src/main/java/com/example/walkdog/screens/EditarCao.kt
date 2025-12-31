@@ -1,0 +1,138 @@
+package com.example.walkdog.screens
+
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
+import coil.compose.AsyncImage
+import com.example.walkdog.utils.buildFotoCaoUrl
+import com.example.walkdog.viewmodel.EditarCaoViewModel
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun EditarCaoScreen(
+    caoId: String,
+    onBackClick: () -> Unit,
+    viewModel: EditarCaoViewModel = viewModel()
+) {
+    val state by viewModel.state.collectAsState()
+
+    LaunchedEffect(caoId) {
+        viewModel.loadCao(caoId)
+    }
+
+    LaunchedEffect(state.success) {
+        if (state.success) onBackClick()
+    }
+
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                title = { Text("Editar Cão") },
+                navigationIcon = {
+                    IconButton(onClick = onBackClick) {
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = null)
+                    }
+                }
+            )
+        }
+    ) { padding ->
+
+        when {
+            state.loading -> Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(padding),
+                contentAlignment = Alignment.Center
+            ) {
+                CircularProgressIndicator()
+            }
+
+            state.error != null -> Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(padding),
+                contentAlignment = Alignment.Center
+            ) {
+                Text("Erro: ${state.error}", color = Color.Red)
+            }
+
+            state.data != null -> {
+                val cao = state.data!!
+
+                var nome by remember { mutableStateOf(cao["nome"]?.toString() ?: "") }
+                var raca by remember { mutableStateOf(cao["raca"]?.toString() ?: "") }
+                var porte by remember { mutableStateOf(cao["porte"]?.toString() ?: "") }
+                var peso by remember { mutableStateOf(cao["peso"]?.toString() ?: "") }
+                var localidade by remember { mutableStateOf(cao["localidade"]?.toString() ?: "") }
+
+                val fotoId = cao["fotoId"]?.toString()
+                val fotoUrl = buildFotoCaoUrl(fotoId)
+
+                Column(
+                    modifier = Modifier
+                        .padding(padding)
+                        .padding(16.dp),
+                    verticalArrangement = Arrangement.spacedBy(16.dp)
+                ) {
+
+                    // 🐶 FOTO DO CÃO (APENAS VISUAL)
+                    if (fotoUrl != null) {
+                        AsyncImage(
+                            model = fotoUrl,
+                            contentDescription = "Foto do cão",
+                            modifier = Modifier
+                                .size(120.dp)
+                                .clip(CircleShape)
+                                .align(Alignment.CenterHorizontally),
+                            contentScale = ContentScale.Crop
+                        )
+                    } else {
+                        Box(
+                            modifier = Modifier
+                                .size(120.dp)
+                                .clip(CircleShape)
+                                .background(Color.LightGray)
+                                .align(Alignment.CenterHorizontally),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text("🐶", fontSize = MaterialTheme.typography.headlineLarge.fontSize)
+                        }
+                    }
+
+                    OutlinedTextField(nome, { nome = it }, label = { Text("Nome") })
+                    OutlinedTextField(raca, { raca = it }, label = { Text("Raça") })
+                    OutlinedTextField(porte, { porte = it }, label = { Text("Porte") })
+                    OutlinedTextField(peso, { peso = it }, label = { Text("Peso") })
+                    OutlinedTextField(localidade, { localidade = it }, label = { Text("Localidade") })
+
+                    Button(
+                        onClick = {
+                            viewModel.salvarAlteracoes(
+                                caoId = caoId,
+                                nome = nome,
+                                raca = raca,
+                                porte = porte,
+                                peso = peso,
+                                localidade = localidade
+                            )
+                        },
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Text("Guardar Alterações")
+                    }
+                }
+            }
+        }
+    }
+}

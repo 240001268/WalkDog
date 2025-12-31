@@ -21,6 +21,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.walkdog.viewmodel.PerfilFornecedorViewModel
+import coil.compose.AsyncImage
+import androidx.compose.ui.layout.ContentScale
+import com.example.walkdog.utils.buildFotoFornecedorUrl
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -108,6 +111,9 @@ fun PerfilFornecedorScreen(
             // --------------------------------------------------------------
             state.fornecedor?.let { fornecedor ->
 
+                val fotoId = fornecedor.data["fotoId"]?.toString()
+                val fotoUrl = buildFotoFornecedorUrl(fotoId)
+
                 val nome = fornecedor.data["nome"]?.toString() ?: ""
                 val localidade = fornecedor.data["localidade"]?.toString() ?: ""
 
@@ -123,12 +129,31 @@ fun PerfilFornecedorScreen(
                         modifier = Modifier.padding(18.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Box(
-                            modifier = Modifier
-                                .size(70.dp)
-                                .clip(CircleShape)
-                                .background(Color(0xFF8E67FF))
-                        )
+                        if (fotoUrl != null) {
+                            AsyncImage(
+                                model = fotoUrl,
+                                contentDescription = "Foto do fornecedor",
+                                modifier = Modifier
+                                    .size(70.dp)
+                                    .clip(CircleShape),
+                                contentScale = ContentScale.Crop
+                            )
+                        } else {
+                            Box(
+                                modifier = Modifier
+                                    .size(70.dp)
+                                    .clip(CircleShape)
+                                    .background(Color(0xFF8E67FF)),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Text(
+                                    nome.firstOrNull()?.uppercase() ?: "",
+                                    color = Color.White,
+                                    fontWeight = FontWeight.Bold,
+                                    fontSize = 22.sp
+                                )
+                            }
+                        }
 
                         Spacer(modifier = Modifier.width(16.dp))
 
