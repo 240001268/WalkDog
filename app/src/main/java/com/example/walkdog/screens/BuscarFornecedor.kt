@@ -16,12 +16,13 @@ import androidx.compose.ui.*
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.walkdog.viewmodel.BuscarFornecedoresViewModel
 import com.example.walkdog.viewmodel.FornecedorItem
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -32,8 +33,8 @@ fun BuscarFornecedoresScreen(
     val viewModel: BuscarFornecedoresViewModel = viewModel()
     val state by viewModel.state.collectAsState()
 
-    var search by remember { mutableStateOf("") }
-    var ratingMin by remember { mutableStateOf(0) }
+    var search by rememberSaveable { mutableStateOf("") }
+    var ratingMin by rememberSaveable { mutableIntStateOf(0) }
 
     LaunchedEffect(Unit) {
         viewModel.loadFornecedores()
