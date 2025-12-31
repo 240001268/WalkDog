@@ -25,8 +25,7 @@ import coil.compose.AsyncImage
 import androidx.compose.ui.layout.ContentScale
 import com.example.walkdog.utils.buildFotoClienteUrl
 import com.example.walkdog.utils.buildFotoCaoUrl
-import java.net.URLEncoder
-import java.nio.charset.StandardCharsets
+
 
 // ------------------------------------------------------------
 // MINI MENU CLIENTE
@@ -147,7 +146,7 @@ fun PerfilClienteScreen(
     val viewModel: PerfilClienteViewModel = viewModel()
     val state by viewModel.state.collectAsState()
 
-    LaunchedEffect(Unit) {
+    LaunchedEffect(userId) {
         viewModel.getClienteData()
     }
 
@@ -275,19 +274,4 @@ fun PerfilClienteScreen(
             }
         }
     }
-}
-
-// ------------------------------------------------------------
-// HELPER – ROTA DO PERFIL DO CÃO
-// ------------------------------------------------------------
-fun buildPerfilCaoRoute(cao: Cao): String {
-    fun enc(v: String) = URLEncoder.encode(v, StandardCharsets.UTF_8.toString())
-
-    return "perfil_cao/" +
-            "${enc(cao.nome)}/" +
-            "${enc(cao.raca)}/" +
-            "${enc(cao.porte)}/" +
-            "${enc(cao.peso)}/" +
-            "${enc(cao.localidade)}/" +
-            "${enc(cao.fotoUrl ?: "")}"
 }

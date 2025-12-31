@@ -36,7 +36,7 @@ fun EditarClienteScreen(
     val state by viewModel.state.collectAsState()
     val context = LocalContext.current
 
-    LaunchedEffect(Unit) {
+    LaunchedEffect(userId) {
         viewModel.loadCliente()
         }
 
