@@ -249,7 +249,7 @@ fun MarcarPasseioScreen(
                 Column {
                     Text("Preço do Passeio", color = Color.Gray)
                     Text(
-                        if (state.precoFinal.isBlank()) "--" else state.precoFinal,
+                        text = state.precoFinal.ifBlank { "--" },
                         fontSize = 24.sp,
                         fontWeight = FontWeight.Bold,
                         color = Color(0xFF6A1B9A)

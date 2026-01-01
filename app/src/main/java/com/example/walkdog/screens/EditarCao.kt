@@ -82,19 +82,20 @@ fun EditarCaoScreen(
                 Column(
                     modifier = Modifier
                         .padding(padding)
-                        .padding(16.dp),
+                        .padding(16.dp)
+                        .fillMaxWidth(),
+                    horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
 
-                    // 🐶 FOTO DO CÃO (APENAS VISUAL)
+                    // 🐶 FOTO DO CÃO
                     if (fotoUrl != null) {
                         AsyncImage(
                             model = fotoUrl,
                             contentDescription = "Foto do cão",
                             modifier = Modifier
                                 .size(120.dp)
-                                .clip(CircleShape)
-                                .align(Alignment.CenterHorizontally),
+                                .clip(CircleShape),
                             contentScale = ContentScale.Crop
                         )
                     } else {
@@ -102,19 +103,58 @@ fun EditarCaoScreen(
                             modifier = Modifier
                                 .size(120.dp)
                                 .clip(CircleShape)
-                                .background(Color.LightGray)
-                                .align(Alignment.CenterHorizontally),
+                                .background(Color.LightGray),
                             contentAlignment = Alignment.Center
                         ) {
-                            Text("🐶", fontSize = MaterialTheme.typography.headlineLarge.fontSize)
+                            Text("🐶", style = MaterialTheme.typography.headlineLarge)
                         }
                     }
 
-                    OutlinedTextField(nome, { nome = it }, label = { Text("Nome") })
-                    OutlinedTextField(raca, { raca = it }, label = { Text("Raça") })
-                    OutlinedTextField(porte, { porte = it }, label = { Text("Porte") })
-                    OutlinedTextField(peso, { peso = it }, label = { Text("Peso") })
-                    OutlinedTextField(localidade, { localidade = it }, label = { Text("Localidade") })
+                    // 🔹 CAMPOS CENTRADOS
+                    OutlinedTextField(
+                        value = nome,
+                        onValueChange = { nome = it },
+                        label = { Text("Nome") },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .widthIn(max = 420.dp)
+                    )
+
+                    OutlinedTextField(
+                        value = raca,
+                        onValueChange = { raca = it },
+                        label = { Text("Raça") },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .widthIn(max = 420.dp)
+                    )
+
+                    OutlinedTextField(
+                        value = porte,
+                        onValueChange = { porte = it },
+                        label = { Text("Porte") },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .widthIn(max = 420.dp)
+                    )
+
+                    OutlinedTextField(
+                        value = peso,
+                        onValueChange = { peso = it },
+                        label = { Text("Peso") },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .widthIn(max = 420.dp)
+                    )
+
+                    OutlinedTextField(
+                        value = localidade,
+                        onValueChange = { localidade = it },
+                        label = { Text("Localidade") },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .widthIn(max = 420.dp)
+                    )
 
                     Button(
                         onClick = {
@@ -127,7 +167,9 @@ fun EditarCaoScreen(
                                 localidade = localidade
                             )
                         },
-                        modifier = Modifier.fillMaxWidth()
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .widthIn(max = 420.dp)
                     ) {
                         Text("Guardar Alterações")
                     }

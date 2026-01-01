@@ -214,16 +214,12 @@ fun PerfilFornecedorScreen(
 
             state.passeios.forEach { passeio ->
 
-                val descricao = passeio.data["descricao"]?.toString() ?: "Sem descrição"
-                val duracao = passeio.data["duracao"]?.toString()?.toIntOrNull() ?: 0
-                val preco = passeio.data["preco"]?.toString()?.toIntOrNull() ?: 0
-
                 PasseioFornecedorCard(
-                    descricao = descricao,
-                    duracaoStr = duracao.toString(),
-                    precoStr = preco.toString(),
+                    descricao = passeio.descricao,
+                    duracaoStr = passeio.duracao.toString(),
+                    precoStr = passeio.preco.toString(),
                     onAgendar = {
-                        onScheduleClick(descricao)
+                        onScheduleClick(passeio.id)
                     }
                 )
             }

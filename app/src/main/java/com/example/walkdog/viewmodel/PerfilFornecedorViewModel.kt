@@ -10,11 +10,18 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 
+data class PasseioFornecedorUi(
+    val id: String,
+    val descricao: String,
+    val duracao: Int,
+    val preco: Int
+)
+
 data class PerfilFornecedorState(
     val loading: Boolean = false,
     val error: String? = null,
     val fornecedor: Document<Map<String, Any>>? = null,
-    val passeios: List<Document<Map<String, Any>>> = emptyList()
+    val passeios: List<PasseioFornecedorUi> = emptyList()
 )
 
 class PerfilFornecedorViewModel : ViewModel() {
@@ -57,40 +64,48 @@ class PerfilFornecedorViewModel : ViewModel() {
     }
 
     // ---------------------------------------------------------
-    // 2️⃣ Buscar os passeios do fornecedor (USANDO STATE)
+    // 2️⃣ Buscar os passeios do fornecedor
     // ---------------------------------------------------------
     fun getPasseiosFornecedor() {
         viewModelScope.launch {
             try {
-                val fornecedor = _state.value.fornecedor
-                if (fornecedor == null) return@launch
+                val fornecedor = _state.value.fornecedor ?: return@launch
 
-                val selecionados = (fornecedor.data["passeiosSelecionados"] as? List<*>)
-                    ?.map { it.toString() }
-                    ?: emptyList()
+                val ids: List<String> =
+                    (fornecedor.data["passeiosSelecionados"] as? List<*>)
+                        ?.filterIsInstance<String>()
+                        ?: emptyList()
 
-                if (selecionados.isEmpty()) {
+                if (ids.isEmpty()) {
                     _state.value = _state.value.copy(passeios = emptyList())
                     return@launch
                 }
 
-                val result = AppwriteService.databases.listDocuments(
-                    databaseId = DB_ID,
-                    collectionId = COLLECTION_PASSEIO,
-                    queries = listOf(
-                        Query.equal("\$id", selecionados)
-                    )
-                )
+                val passeios = ids.mapNotNull { passeioId ->
+                    try {
+                        val doc = AppwriteService.databases.getDocument(
+                            databaseId = DB_ID,
+                            collectionId = COLLECTION_PASSEIO,
+                            documentId = passeioId
+                        )
+
+                        PasseioFornecedorUi(
+                            id = doc.id,
+                            descricao = doc.data["descricao"]?.toString() ?: "",
+                            duracao = doc.data["duracao"]?.toString()?.toIntOrNull() ?: 0,
+                            preco = doc.data["preco"]?.toString()?.toIntOrNull() ?: 0
+                        )
+                    } catch (_: Exception) {
+                        null
+                    }
+                }
 
                 _state.value = _state.value.copy(
-                    passeios = result.documents
+                    passeios = passeios
                 )
 
             } catch (e: Exception) {
-                Log.e("PERFIL_FORNECEDOR", "Erro ao carregar passeios", e)
-                _state.value = _state.value.copy(
-                    error = e.message
-                )
+                _state.value = _state.value.copy(error = e.message)
             }
         }
     }
