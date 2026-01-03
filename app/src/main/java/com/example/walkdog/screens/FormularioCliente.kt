@@ -5,8 +5,7 @@ package com.example.walkdog.screens
 import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.foundation.Image
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
@@ -25,66 +24,56 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.*
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.rememberAsyncImagePainter
 import com.example.walkdog.viewmodel.FormularioClienteViewModel
-import androidx.compose.ui.text.input.PasswordVisualTransformation
-import androidx.compose.ui.text.input.VisualTransformation
 
+/* ---------------- INPUT FIELD ---------------- */
 
 @Composable
 fun InputField(
     value: String,
     onValueChange: (String) -> Unit,
     label: String,
-    hasError: Boolean,
+    modifier: Modifier = Modifier,
     keyboardType: KeyboardType = KeyboardType.Text,
     isPassword: Boolean = false
 ) {
-
     var passwordVisible by remember { mutableStateOf(false) }
 
     OutlinedTextField(
         value = value,
         onValueChange = onValueChange,
         label = { Text(label) },
-        isError = hasError,
         singleLine = true,
-        keyboardOptions = KeyboardOptions(
-            keyboardType = keyboardType
-        ),
-        visualTransformation = if (isPassword && !passwordVisible)
-            PasswordVisualTransformation()
-        else
-            VisualTransformation.None,
+        keyboardOptions = KeyboardOptions(keyboardType = keyboardType),
+        visualTransformation =
+            if (isPassword && !passwordVisible)
+                PasswordVisualTransformation()
+            else VisualTransformation.None,
         trailingIcon = {
             if (isPassword) {
                 IconButton(onClick = { passwordVisible = !passwordVisible }) {
                     Icon(
-                        imageVector = if (passwordVisible)
-                            Icons.Default.Visibility
-                        else
-                            Icons.Default.VisibilityOff,
-                        contentDescription = "Ver password"
+                        imageVector =
+                            if (passwordVisible)
+                                Icons.Default.Visibility
+                            else
+                                Icons.Default.VisibilityOff,
+                        contentDescription = null
                     )
                 }
             }
         },
-        modifier = Modifier.fillMaxWidth()
+        modifier = modifier.fillMaxWidth()
     )
-
-    if (hasError) {
-        Text(
-            text = "$label é obrigatório",
-            color = Color.Red,
-            fontSize = 12.sp,
-            modifier = Modifier.padding(start = 4.dp, top = 2.dp)
-        )
-    }
 }
+
+/* ---------------- CARD SECTION ---------------- */
 
 @Composable
 fun CardSection(
@@ -108,6 +97,7 @@ fun CardSection(
     }
 }
 
+/* ---------------- SCREEN ---------------- */
 
 @Composable
 fun FormularioClienteScreen(
@@ -115,11 +105,9 @@ fun FormularioClienteScreen(
     onSaveClick: () -> Unit = {},
     viewModel: FormularioClienteViewModel = viewModel()
 ) {
-
-    // Observar o estado do ViewModel
     val uiState by viewModel.state.collectAsState()
+    val context = LocalContext.current
 
-    // CAMPOS DO CLIENTE (COM VALIDAÇÃO)
     var nome by remember { mutableStateOf("") }
     var morada by remember { mutableStateOf("") }
     var codPostal by remember { mutableStateOf("") }
@@ -127,33 +115,18 @@ fun FormularioClienteScreen(
     var nif by remember { mutableStateOf("") }
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
-
-    // PAGAMENTO
     var numeroCartao by remember { mutableStateOf("") }
     var validade by remember { mutableStateOf("") }
     var cvv by remember { mutableStateOf("") }
     var iban by remember { mutableStateOf("") }
+    var fotoUri by remember { mutableStateOf<Uri?>(null) }
 
-    // FOTO
-    var profileImageUri by remember { mutableStateOf<Uri?>(null) }
+    val imagePicker = rememberLauncherForActivityResult(
+        ActivityResultContracts.GetContent()
+    ) { uri -> fotoUri = uri }
 
-    val launcher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.GetContent()
-    ) { uri -> profileImageUri = uri }
+    var erroDialog by remember { mutableStateOf<List<String>?>(null) }
 
-    val context = LocalContext.current
-
-    // ERROS
-    var nomeErro by remember { mutableStateOf(false) }
-    var moradaErro by remember { mutableStateOf(false) }
-    var codPostalErro by remember { mutableStateOf(false) }
-    var localidadeErro by remember { mutableStateOf(false) }
-    var nifErro by remember { mutableStateOf(false) }
-    var emailErro by remember { mutableStateOf(false) }
-    var passwordErro by remember { mutableStateOf(false) }
-    var ibanErro by remember { mutableStateOf(false) }
-
-    // Mostrar mensagem de sucesso ou erro
     LaunchedEffect(uiState.success) {
         if (uiState.success) {
             onSaveClick()
@@ -161,14 +134,18 @@ fun FormularioClienteScreen(
         }
     }
 
-    // Mostrar erro se houver
-    if (uiState.error != null) {
+    erroDialog?.let { campos ->
         AlertDialog(
-            onDismissRequest = { viewModel.resetState() },
-            title = { Text("Erro") },
-            text = { Text(uiState.error ?: "Erro desconhecido") },
+            onDismissRequest = { erroDialog = null },
+            title = { Text("Campos obrigatórios") },
+            text = {
+                Text(
+                    "Preenche os seguintes campos:\n\n" +
+                            campos.joinToString("\n") { "• $it" }
+                )
+            },
             confirmButton = {
-                Button(onClick = { viewModel.resetState() }) {
+                Button(onClick = { erroDialog = null }) {
                     Text("OK")
                 }
             }
@@ -178,27 +155,28 @@ fun FormularioClienteScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Perfil do Cliente", color = Color.White) },
+                title = { Text("Registar Cliente", color = Color.White) },
                 navigationIcon = {
                     IconButton(onClick = onBackClick) {
                         Icon(
                             Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "Voltar",
+                            contentDescription = null,
                             tint = Color.White
                         )
                     }
                 },
-                colors = TopAppBarDefaults.topAppBarColors(Color(0xFF6A1B9A))
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = Color(0xFF6A1B9A)
+                )
             )
         }
-    ) { paddingValues ->
+    ) { padding ->
 
-        // Mostrar loading
         if (uiState.loading) {
             Box(
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(paddingValues),
+                    .padding(padding),
                 contentAlignment = Alignment.Center
             ) {
                 CircularProgressIndicator()
@@ -206,160 +184,125 @@ fun FormularioClienteScreen(
         } else {
             Column(
                 modifier = Modifier
-                    .padding(paddingValues)
+                    .padding(padding)
                     .padding(16.dp)
-                    .fillMaxSize()
                     .verticalScroll(rememberScrollState()),
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
 
-                // FOTO
-                Column(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalAlignment = Alignment.CenterHorizontally
+                /* -------- FOTO -------- */
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
                     Box(
                         modifier = Modifier
-                            .size(110.dp)
+                            .size(100.dp)
                             .clip(CircleShape)
-                            .clickable { launcher.launch("image/*") },
+                            .background(Color.LightGray)
+                            .clickable { imagePicker.launch("image/*") },
                         contentAlignment = Alignment.Center
                     ) {
-                        if (profileImageUri != null) {
+                        if (fotoUri != null) {
                             Image(
-                                painter = rememberAsyncImagePainter(profileImageUri),
-                                contentDescription = "Foto do Cliente",
-                                contentScale = ContentScale.Crop,
-                                modifier = Modifier.fillMaxSize()
+                                painter = rememberAsyncImagePainter(fotoUri),
+                                contentDescription = null,
+                                modifier = Modifier.fillMaxSize(),
+                                contentScale = ContentScale.Crop
                             )
                         } else {
-                            Text("Adicionar Foto", color = Color.Gray, fontSize = 14.sp)
+                            Text("Foto", color = Color.DarkGray)
                         }
+                    }
+
+                    Column {
+                        Text("Foto de Perfil", fontWeight = FontWeight.Bold, fontSize = 18.sp)
+                        Text("Toque para adicionar", color = Color.Gray, fontSize = 14.sp)
                     }
                 }
 
-                // INFORMAÇÕES DO CLIENTE
-                CardSection(title = "Informações do Cliente") {
-                    InputField(nome, { nome = it; nomeErro = false }, "Nome", nomeErro)
-                    InputField(morada, { morada = it; moradaErro = false }, "Morada", moradaErro)
-                    InputField(codPostal, { codPostal = it; codPostalErro = false }, "Código Postal", codPostalErro)
-                    InputField(localidade, { localidade = it; localidadeErro = false }, "Localidade", localidadeErro)
+                /* -------- INFORMAÇÕES -------- */
+                CardSection("Informações do Cliente") {
+
+                    InputField(value = nome, onValueChange = { nome = it }, label = "Nome")
+                    InputField(value = morada, onValueChange = { morada = it }, label = "Morada")
+                    InputField(value = codPostal, onValueChange = { codPostal = it }, label = "Código Postal")
+                    InputField(value = localidade, onValueChange = { localidade = it }, label = "Localidade")
+                    InputField(value = nif, onValueChange = { nif = it }, label = "NIF", keyboardType = KeyboardType.Number)
+                    InputField(value = email, onValueChange = { email = it }, label = "Email", keyboardType = KeyboardType.Email)
                     InputField(
-                        nif,
-                        { nif = it; nifErro = false },
-                        "NIF",
-                        nifErro,
-                        keyboardType = KeyboardType.Number
-                    )
-                    InputField(
-                        email,
-                        { email = it; emailErro = false },
-                        "Email",
-                        emailErro,
-                        keyboardType = KeyboardType.Email
-                    )
-                    InputField(
-                        password,
-                        { password = it; passwordErro = false },
-                        "Password",
-                        passwordErro,
+                        value = password,
+                        onValueChange = { password = it },
+                        label = "Password",
                         keyboardType = KeyboardType.Password,
                         isPassword = true
                     )
                 }
 
-                // MÉTODO DE PAGAMENTO
-                CardSection(title = "Método de Pagamento") {
-                    InputField(
-                        numeroCartao,
-                        { numeroCartao = it },
-                        "Número do Cartão",
-                        false,
-                        keyboardType = KeyboardType.Number
-                    )
+                CardSection("Método de Pagamento") {
+
+                    InputField(value = numeroCartao, onValueChange = { numeroCartao = it }, label = "Número do Cartão")
 
                     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                         InputField(
-                            validade,
-                            { validade = it },
-                            "MM/YY",
-                            false,
-                            keyboardType = KeyboardType.Number
-                        )
-
-                        InputField(
-                            cvv,
-                            { cvv = it },
-                            "CVV",
-                            false,
+                            value = validade,
+                            onValueChange = { validade = it },
+                            label = "MM/YY",
                             keyboardType = KeyboardType.Number,
-                            isPassword = true
+                            modifier = Modifier.weight(1f)
+                        )
+                        InputField(
+                            value = cvv,
+                            onValueChange = { cvv = it },
+                            label = "CVV",
+                            keyboardType = KeyboardType.Number,
+                            isPassword = true,
+                            modifier = Modifier.weight(1f)
                         )
                     }
 
-                    InputField(
-                        iban,
-                        { iban = it; ibanErro = false },
-                        "IBAN",
-                        ibanErro
-                    )
+                    InputField(value = iban, onValueChange = { iban = it }, label = "IBAN")
                 }
 
-                // BOTÃO SALVAR
                 Button(
                     onClick = {
-                        // VALIDAÇÕES
-                        nomeErro = nome.isBlank()
-                        moradaErro = morada.isBlank()
-                        codPostalErro = codPostal.isBlank()
-                        localidadeErro = localidade.isBlank()
-                        nifErro = nif.isBlank()
-                        emailErro = email.isBlank()
-                        passwordErro = password.isBlank()
-                        ibanErro = iban.isBlank()
+                        val erros = mutableListOf<String>()
 
-                        val valido = listOf(
-                            nomeErro,
-                            moradaErro,
-                            codPostalErro,
-                            localidadeErro,
-                            nifErro,
-                            emailErro,
-                            passwordErro,
-                            ibanErro
-                        ).none { it }
+                        if (nome.isBlank()) erros.add("Nome")
+                        if (morada.isBlank()) erros.add("Morada")
+                        if (email.isBlank()) erros.add("Email")
+                        if (password.isBlank()) erros.add("Password")
+                        if (iban.isBlank()) erros.add("IBAN")
 
-                        if (valido) {
-                            // Chamar o ViewModel para salvar
-                            viewModel.salvarCliente(
-                                context = context,
-                                nome = nome,
-                                morada = morada,
-                                codPostal = codPostal,
-                                localidade = localidade,
-                                NIF = nif,
-                                email = email,
-                                password = password,
-                                numeroCartao = numeroCartao,
-                                validade = validade,
-                                cvv = cvv,
-                                iban = iban,
-                                fotoUri = profileImageUri
-                            )
+                        if (erros.isNotEmpty()) {
+                            erroDialog = erros
+                            return@Button
                         }
+
+                        viewModel.salvarCliente(
+                            context = context,
+                            nome = nome,
+                            morada = morada,
+                            codPostal = codPostal,
+                            localidade = localidade,
+                            NIF = nif,
+                            email = email,
+                            password = password,
+                            numeroCartao = numeroCartao,
+                            validade = validade,
+                            cvv = cvv,
+                            iban = iban,
+                            fotoUri = fotoUri
+                        )
                     },
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(56.dp),
-                    colors = ButtonDefaults.buttonColors(Color(0xFF6A1B9A)),
-                    shape = RoundedCornerShape(12.dp),
-                    enabled = !uiState.loading
+                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF6A1B9A))
                 ) {
-                    Text("Salvar", color = Color.White, fontSize = 18.sp)
+                    Text("Registar Cliente", color = Color.White, fontSize = 18.sp)
                 }
             }
         }
     }
 }
-
-

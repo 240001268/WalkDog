@@ -67,11 +67,12 @@ fun AvaliarFornecedorScreen(
                 for (i in 1..5) {
                     IconButton(onClick = { viewModel.setRating(i) }) {
                         Icon(
-                            imageVector =
-                                if (state.rating >= i) Icons.Filled.Star
-                                else Icons.Outlined.Star,
-                            contentDescription = null,
-                            tint = Color(0xFFFFC107),
+                            imageVector = Icons.Filled.Star,
+                            contentDescription = "Rating $i",
+                            tint = if (state.rating >= i)
+                                Color(0xFFFFC107)   // ⭐ amarelo selecionado
+                            else
+                                Color.LightGray,   // ⭐ cinza não selecionado
                             modifier = Modifier.size(36.dp)
                         )
                     }

@@ -7,6 +7,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.*
+import androidx.compose.material3.MenuAnchorType
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -21,6 +22,8 @@ import androidx.compose.ui.layout.ContentScale
 import com.example.walkdog.viewmodel.PasseiosEstadoViewModel
 import com.example.walkdog.viewmodel.PasseioEstadoUi
 import java.util.Locale
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -38,19 +41,29 @@ fun PasseiosEstadoScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Estado dos Pedidos", color = Color.White) },
+                title = { Text("Estado dos Passeios", color = Color.White) },
                 navigationIcon = {
                     IconButton(onClick = onBackClick) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, null, tint = Color.White)
+                        Icon(
+                            Icons.AutoMirrored.Filled.ArrowBack,
+                            contentDescription = null,
+                            tint = Color.White
+                        )
                     }
                 },
-                colors = TopAppBarDefaults.topAppBarColors(Color(0xFF6A1B9A))
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = Color(0xFF6A1B9A)
+                )
             )
         }
     ) { padding ->
 
         Column(
-            modifier = Modifier.padding(padding).padding(16.dp),
+            modifier = Modifier
+                .padding(padding)
+                .padding(16.dp)
+                .fillMaxSize()
+                .verticalScroll(rememberScrollState()), // 👈 SCROLL AQUI
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
 
@@ -71,7 +84,9 @@ fun PasseiosEstadoScreen(
                     passeio = passeio,
                     podeEditarEstado = podeEditarEstado,
                     podeAvaliar = podeAvaliar,
-                    onEstadoChange = { viewModel.atualizarEstadoPasseio(passeio.id, it) },
+                    onEstadoChange = {
+                        viewModel.atualizarEstadoPasseio(passeio.id, it)
+                    },
                     onAvaliar = {
                         onAvaliarFornecedor(passeio.id, passeio.fornecedorId)
                     }
@@ -90,6 +105,13 @@ fun PasseioEstadoCard(
     onEstadoChange: (String) -> Unit,
     onAvaliar: () -> Unit
 ) {
+    val estadoColor = when (passeio.estado) {
+        "aceite" -> Color(0xFF2E7D32)
+        "andamento" -> Color(0xFF0277BD)
+        "concluido" -> Color(0xFF616161)
+        else -> Color.Gray
+    }
+
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(20.dp),
@@ -97,18 +119,26 @@ fun PasseioEstadoCard(
     ) {
         Column(Modifier.padding(16.dp)) {
 
+            // ----------------------------
+            // CABEÇALHO
+            // ----------------------------
             Row(verticalAlignment = Alignment.CenterVertically) {
 
-                if (passeio.fotoCaoUrl != null) {
+                if (!passeio.fotoCaoUrl.isNullOrBlank()) {
                     AsyncImage(
                         model = passeio.fotoCaoUrl,
-                        contentDescription = null,
-                        modifier = Modifier.size(56.dp).clip(CircleShape),
+                        contentDescription = "Foto do cão",
+                        modifier = Modifier
+                            .size(56.dp)
+                            .clip(CircleShape),
                         contentScale = ContentScale.Crop
                     )
                 } else {
                     Box(
-                        Modifier.size(56.dp).clip(CircleShape).background(Color.LightGray),
+                        Modifier
+                            .size(56.dp)
+                            .clip(CircleShape)
+                            .background(Color.LightGray),
                         contentAlignment = Alignment.Center
                     ) {
                         Text("🐕", fontSize = 22.sp)
@@ -127,41 +157,81 @@ fun PasseioEstadoCard(
 
             InfoRow("📍", "Localidade", passeio.localidade)
             InfoRow("⏰", "Hora", passeio.hora)
-            InfoRow("💶", "Preço", String.format(Locale.getDefault(), "€ %s", passeio.preco))
+            InfoRow(
+                "💶",
+                "Preço",
+                String.format(Locale.getDefault(), "€ %s", passeio.preco)
+            )
             InfoRow(
                 "👤",
                 "Fornecedor",
-                "${passeio.fornecedorNome}  ⭐ ${String.format(Locale.getDefault(), "%.1f", passeio.fornecedorRating)}"
+                "${passeio.fornecedorNome}  ⭐ ${
+                    String.format(Locale.getDefault(), "%.1f", passeio.fornecedorRating)
+                }"
             )
 
             Spacer(Modifier.height(12.dp))
 
+            // ----------------------------
+            // ESTADO (FORNECEDOR EDITA)
+            // ----------------------------
             if (podeEditarEstado) {
+
                 var expanded by remember { mutableStateOf(false) }
 
-                ExposedDropdownMenuBox(expanded, { expanded = !expanded }) {
+                ExposedDropdownMenuBox(
+                    expanded = expanded,
+                    onExpandedChange = { expanded = !expanded }
+                ) {
                     OutlinedTextField(
                         value = passeio.estado.replaceFirstChar { it.uppercase() },
                         onValueChange = {},
                         readOnly = true,
-                        modifier = Modifier.fillMaxWidth(),
-                        label = { Text("Estado") }
+                        label = { Text("Estado do Passeio") },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .menuAnchor(MenuAnchorType.PrimaryNotEditable),
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedBorderColor = estadoColor,
+                            focusedLabelColor = estadoColor
+                        )
                     )
 
-                    ExposedDropdownMenu(expanded, { expanded = false }) {
-                        listOf("aceite", "andamento", "concluido").forEach {
+                    ExposedDropdownMenu(
+                        expanded = expanded,
+                        onDismissRequest = { expanded = false }
+                    ) {
+                        listOf("aceite", "andamento", "concluido").forEach { estado ->
                             DropdownMenuItem(
-                                text = { Text(it) },
+                                text = {
+                                    Text(estado.replaceFirstChar { it.uppercase() })
+                                },
                                 onClick = {
-                                    onEstadoChange(it)
+                                    onEstadoChange(estado)
                                     expanded = false
                                 }
                             )
                         }
                     }
                 }
+
+            } else {
+                Surface(
+                    color = estadoColor.copy(alpha = 0.15f),
+                    shape = RoundedCornerShape(12.dp)
+                ) {
+                    Text(
+                        text = passeio.estado.replaceFirstChar { it.uppercase() },
+                        color = estadoColor,
+                        fontWeight = FontWeight.Bold,
+                        modifier = Modifier.padding(12.dp)
+                    )
+                }
             }
 
+            // ----------------------------
+            // AVALIAÇÃO (CLIENTE)
+            // ----------------------------
             if (podeAvaliar) {
                 Spacer(Modifier.height(12.dp))
                 Button(
@@ -181,7 +251,11 @@ fun InfoRow(icon: String, label: String, value: String) {
     Row(Modifier.fillMaxWidth()) {
         Text(icon)
         Spacer(Modifier.width(8.dp))
-        Text("$label:", modifier = Modifier.width(110.dp), fontWeight = FontWeight.Medium)
+        Text(
+            "$label:",
+            modifier = Modifier.width(110.dp),
+            fontWeight = FontWeight.Medium
+        )
         Text(value, modifier = Modifier.weight(1f))
     }
 }

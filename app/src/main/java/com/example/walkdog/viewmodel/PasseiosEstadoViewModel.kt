@@ -13,7 +13,7 @@ data class PasseioEstadoUi(
     val id: String,
     val fornecedorId: String,
     val fornecedorNome: String,
-    val fornecedorRating: Float,
+    val fornecedorRating: Double,
     val estado: String,
     val avaliado: Boolean,
     val descricao: String,
@@ -41,6 +41,7 @@ class PasseiosEstadoViewModel : ViewModel() {
     private val DB_ID = "69236f45003447bc5844"
     private val COL_PASSEIOS = "694acd59001d3cf05135"
     private val COL_FORNECEDORES = "69236f93001828d82b6f"
+    private val COL_CAO = "692b22060025bfc8cade"
 
     fun loadPasseiosUser() {
         viewModelScope.launch {
@@ -50,6 +51,7 @@ class PasseiosEstadoViewModel : ViewModel() {
                 val user = AppwriteService.account.get()
                 val userId = user.id
 
+                // 🔎 Ver se é fornecedor
                 val fornecedorDocs = AppwriteService.databases.listDocuments(
                     databaseId = DB_ID,
                     collectionId = COL_FORNECEDORES,
@@ -77,11 +79,11 @@ class PasseiosEstadoViewModel : ViewModel() {
                     queries = queries
                 )
 
-                val fornecedoresCache = mutableMapOf<String, Pair<String, Float>>()
+                val fornecedoresCache = mutableMapOf<String, Pair<String, Double>>()
 
                 val lista = passeiosDocs.documents.map { doc ->
 
-                    val fornecedorId = doc.data["fornecedorId"].toString()
+                    val fornecedorId = doc.data["fornecedorId"]?.toString() ?: ""
 
                     val fornecedorInfo = fornecedoresCache.getOrPut(fornecedorId) {
                         val fDoc = AppwriteService.databases.getDocument(
@@ -91,8 +93,21 @@ class PasseiosEstadoViewModel : ViewModel() {
                         )
                         Pair(
                             fDoc.data["nome"]?.toString() ?: "Fornecedor",
-                            (fDoc.data["rating"] as? Number)?.toFloat() ?: 0f
+                            (fDoc.data["ratingMedio"] as? Number)?.toDouble() ?: 0.0
                         )
+                    }
+
+                    val caoId = doc.data["caoId"]?.toString()
+
+                    val fotoCaoUrl = if (!caoId.isNullOrBlank()) {
+                        val caoDoc = AppwriteService.databases.getDocument(
+                            databaseId = DB_ID,
+                            collectionId = COL_CAO,
+                            documentId = caoId
+                        )
+                        buildFotoCaoUrl(caoDoc.data["fotoId"]?.toString())
+                    } else {
+                        null
                     }
 
                     PasseioEstadoUi(
@@ -107,7 +122,7 @@ class PasseiosEstadoViewModel : ViewModel() {
                         localidade = doc.data["Localidade"]?.toString() ?: "-",
                         hora = doc.data["HoraInicio"]?.toString()?.take(5) ?: "-",
                         preco = doc.data["preco"]?.toString() ?: "-",
-                        fotoCaoUrl = buildFotoCaoUrl(doc.data["fotoId"]?.toString())
+                        fotoCaoUrl = fotoCaoUrl
                     )
                 }
 

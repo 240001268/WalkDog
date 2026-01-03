@@ -3,7 +3,6 @@ package com.example.walkdog.viewmodel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.walkdog.service.AppwriteService
-import io.appwrite.models.Document
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
@@ -12,7 +11,8 @@ data class FornecedorItem(
     val id: String,
     val nome: String,
     val localidade: String,
-    val rating: Float
+    val ratingMedio: Double,
+    val fotoId: String?
 )
 
 data class BuscarFornecedoresUiState(
@@ -44,7 +44,8 @@ class BuscarFornecedoresViewModel : ViewModel() {
                         id = doc.id,
                         nome = doc.data["nome"]?.toString() ?: "Sem nome",
                         localidade = doc.data["localidade"]?.toString() ?: "—",
-                        rating = doc.data["rating"]?.toString()?.toFloatOrNull() ?: 0f
+                        ratingMedio = (doc.data["ratingMedio"] as? Number)?.toDouble() ?: 0.0,
+                        fotoId = doc.data["fotoId"]?.toString()
                     )
                 }
 

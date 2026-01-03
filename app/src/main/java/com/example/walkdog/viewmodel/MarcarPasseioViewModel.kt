@@ -157,6 +157,16 @@ class MarcarPasseioViewModel : ViewModel() {
                     return@launch
                 }
 
+                val caoId = state.value.caoSelecionadoId
+
+                if (caoId.isNullOrBlank()) {
+                    _state.value = _state.value.copy(
+                        loading = false,
+                        error = "Selecione um cão"
+                    )
+                    return@launch
+                }
+
                 AppwriteService.databases.createDocument(
                     databaseId = DB_ID,
                     collectionId = COLLECTION_PASSEIOS_MARCADOS,
@@ -165,6 +175,7 @@ class MarcarPasseioViewModel : ViewModel() {
                         "passeioID" to ID.unique(),
                         "clienteId" to clienteId,
                         "fornecedorId" to fornecedorId,
+                        "caoId" to caoId,
                         "Cao" to caoNome,
                         "Localidade" to localidade,
                         "HoraInicio" to horaInicio,

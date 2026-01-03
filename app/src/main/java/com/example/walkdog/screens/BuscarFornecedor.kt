@@ -23,6 +23,10 @@ import com.example.walkdog.viewmodel.BuscarFornecedoresViewModel
 import com.example.walkdog.viewmodel.FornecedorItem
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.ui.layout.ContentScale
+import coil.compose.AsyncImage
+import com.example.walkdog.utils.buildFotoFornecedorUrl
+import java.util.Locale
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -43,7 +47,7 @@ fun BuscarFornecedoresScreen(
     val filtrados = state.fornecedores.filter {
         (it.nome.contains(search, ignoreCase = true) ||
                 it.localidade.contains(search, ignoreCase = true)) &&
-                it.rating >= ratingMin
+                it.ratingMedio >= ratingMin
     }
 
     Scaffold(
@@ -155,6 +159,8 @@ fun FornecedorCard(
     fornecedor: FornecedorItem,
     onClick: () -> Unit
 ) {
+    val fotoUrl = buildFotoFornecedorUrl(fornecedor.fotoId)
+
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -168,26 +174,46 @@ fun FornecedorCard(
             verticalAlignment = Alignment.CenterVertically
         ) {
 
-            Box(
-                modifier = Modifier
-                    .size(55.dp)
-                    .clip(CircleShape)
-                    .background(Color(0xFF8E67FF)),
-                contentAlignment = Alignment.Center
-            ) {
-                Text(
-                    fornecedor.nome.first().uppercase(),
-                    color = Color.White,
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 20.sp
+            // 🧑 FOTO DO FORNECEDOR
+            if (fotoUrl != null) {
+                AsyncImage(
+                    model = fotoUrl,
+                    contentDescription = "Foto do fornecedor",
+                    modifier = Modifier
+                        .size(55.dp)
+                        .clip(CircleShape),
+                    contentScale = ContentScale.Crop
                 )
+            } else {
+                Box(
+                    modifier = Modifier
+                        .size(55.dp)
+                        .clip(CircleShape)
+                        .background(Color(0xFF8E67FF)),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        fornecedor.nome.firstOrNull()?.uppercase() ?: "",
+                        color = Color.White,
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 20.sp
+                    )
+                }
             }
 
             Spacer(Modifier.width(16.dp))
 
             Column(modifier = Modifier.weight(1f)) {
                 Text(fornecedor.nome, fontSize = 18.sp, fontWeight = FontWeight.Bold)
-                Text("⭐ ${fornecedor.rating}", fontSize = 14.sp)
+                Text(
+                    text = "⭐ ${String.format(
+                        Locale.getDefault(),
+                        "%.1f",
+                        fornecedor.ratingMedio
+                    )}",
+                    fontSize = 14.sp,
+                    color = Color(0xFFFFC107)
+                )
                 Text(fornecedor.localidade, fontSize = 14.sp, color = Color.Gray)
             }
 

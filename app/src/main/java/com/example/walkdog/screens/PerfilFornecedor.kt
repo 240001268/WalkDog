@@ -24,6 +24,7 @@ import com.example.walkdog.viewmodel.PerfilFornecedorViewModel
 import coil.compose.AsyncImage
 import androidx.compose.ui.layout.ContentScale
 import com.example.walkdog.utils.buildFotoFornecedorUrl
+import java.util.Locale
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -160,6 +161,19 @@ fun PerfilFornecedorScreen(
                         Column {
                             Text(nome, fontWeight = FontWeight.Bold, fontSize = 20.sp)
                             Text(localidade, fontSize = 14.sp, color = Color.Gray)
+
+                            Spacer(Modifier.height(4.dp))
+
+                            Text(
+                                text = "⭐ ${String.format(
+                                    Locale.getDefault(),
+                                    "%.1f",
+                                    fornecedor.data["ratingMedio"]?.toString()?.toDoubleOrNull() ?: 0.0
+                                )}",
+                                fontSize = 15.sp,
+                                color = Color(0xFFFFC107),
+                                fontWeight = FontWeight.Medium
+                            )
                         }
                     }
                 }
@@ -216,8 +230,8 @@ fun PerfilFornecedorScreen(
 
                 PasseioFornecedorCard(
                     descricao = passeio.descricao,
-                    duracaoStr = passeio.duracao.toString(),
-                    precoStr = passeio.preco.toString(),
+                    duracaoStr = passeio.duracao,
+                    precoStr = passeio.preco,
                     onAgendar = {
                         onScheduleClick(passeio.id)
                     }
@@ -252,8 +266,8 @@ fun PasseioFornecedorCard(
 
             Spacer(Modifier.height(6.dp))
 
-            Text("Duração: $duracaoStr min", fontSize = 15.sp)
-            Text("Preço: €$precoStr", fontSize = 15.sp)
+            Text("Duração: $duracaoStr", fontSize = 15.sp)
+            Text("Preço: $precoStr", fontSize = 15.sp)
 
             Spacer(Modifier.height(12.dp))
 

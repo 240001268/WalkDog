@@ -1,6 +1,5 @@
 package com.example.walkdog.viewmodel
 
-import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.walkdog.service.AppwriteService
@@ -10,11 +9,14 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 
+// ----------------------------------------------------
+// UI MODELS
+// ----------------------------------------------------
 data class PasseioFornecedorUi(
     val id: String,
     val descricao: String,
-    val duracao: Int,
-    val preco: Int
+    val duracao: String,
+    val preco: String
 )
 
 data class PerfilFornecedorState(
@@ -24,6 +26,9 @@ data class PerfilFornecedorState(
     val passeios: List<PasseioFornecedorUi> = emptyList()
 )
 
+// ----------------------------------------------------
+// VIEWMODEL
+// ----------------------------------------------------
 class PerfilFornecedorViewModel : ViewModel() {
 
     private val _state = MutableStateFlow(PerfilFornecedorState())
@@ -33,116 +38,100 @@ class PerfilFornecedorViewModel : ViewModel() {
     private val COLLECTION_FORNECEDOR = "69236f93001828d82b6f"
     private val COLLECTION_PASSEIO = "693aeccc002dfd874f6d"
 
+    // -------------------------------------------------
+    // PERFIL DO FORNECEDOR (USER LOGADO)
+    // -------------------------------------------------
+    fun getFornecedorDataDoUserLogado() {
+        viewModelScope.launch {
+            try {
+                _state.value = _state.value.copy(loading = true)
+
+                val userId = AppwriteService.account.get().id
+
+                val result = AppwriteService.databases.listDocuments(
+                    databaseId = DB_ID,
+                    collectionId = COLLECTION_FORNECEDOR,
+                    queries = listOf(Query.equal("userId", userId))
+                )
+
+                _state.value = _state.value.copy(
+                    fornecedor = result.documents.firstOrNull(),
+                    loading = false
+                )
+
+            } catch (e: Exception) {
+                _state.value = _state.value.copy(
+                    loading = false,
+                    error = e.message
+                )
+            }
+        }
+    }
+
     // ---------------------------------------------------------
-    // 1️⃣ Buscar dados do fornecedor (POR userId)
-    // ---------------------------------------------------------
+// FORNECEDOR POR ID (PERFIL PÚBLICO)
+// ---------------------------------------------------------
     fun getFornecedorData(fornecedorId: String) {
         viewModelScope.launch {
             try {
                 _state.value = _state.value.copy(loading = true)
 
-                val fornecedor = AppwriteService.databases.getDocument(
+                val doc = AppwriteService.databases.getDocument(
                     databaseId = DB_ID,
                     collectionId = COLLECTION_FORNECEDOR,
                     documentId = fornecedorId
                 )
 
                 _state.value = _state.value.copy(
-                    fornecedor = fornecedor,
-                    loading = false,
-                    error = null
+                    fornecedor = doc,
+                    loading = false
                 )
 
             } catch (e: Exception) {
-                Log.e("PERFIL_FORNECEDOR", "Erro ao obter fornecedor", e)
                 _state.value = _state.value.copy(
-                    error = "Fornecedor não encontrado",
-                    loading = false
+                    loading = false,
+                    error = e.message
                 )
             }
         }
     }
 
     // ---------------------------------------------------------
-    // 2️⃣ Buscar os passeios do fornecedor
+    // PASSEIOS SELECIONADOS PELO FORNECEDOR
     // ---------------------------------------------------------
     fun getPasseiosFornecedor() {
         viewModelScope.launch {
             try {
                 val fornecedor = _state.value.fornecedor ?: return@launch
 
-                val ids: List<String> =
-                    (fornecedor.data["passeiosSelecionados"] as? List<*>)
-                        ?.filterIsInstance<String>()
-                        ?: emptyList()
+                val ids = (fornecedor.data["passeiosSelecionados"] as? List<*>)
+                    ?.map { it.toString() }
+                    ?: emptyList()
 
                 if (ids.isEmpty()) {
                     _state.value = _state.value.copy(passeios = emptyList())
                     return@launch
                 }
 
-                val passeios = ids.mapNotNull { passeioId ->
-                    try {
-                        val doc = AppwriteService.databases.getDocument(
-                            databaseId = DB_ID,
-                            collectionId = COLLECTION_PASSEIO,
-                            documentId = passeioId
-                        )
+                val result = AppwriteService.databases.listDocuments(
+                    databaseId = DB_ID,
+                    collectionId = COLLECTION_PASSEIO,
+                    queries = listOf(Query.equal("\$id", ids))
+                )
 
-                        PasseioFornecedorUi(
-                            id = doc.id,
-                            descricao = doc.data["descricao"]?.toString() ?: "",
-                            duracao = doc.data["duracao"]?.toString()?.toIntOrNull() ?: 0,
-                            preco = doc.data["preco"]?.toString()?.toIntOrNull() ?: 0
-                        )
-                    } catch (_: Exception) {
-                        null
-                    }
+                val passeiosUi = result.documents.map { doc ->
+                    PasseioFornecedorUi(
+                        id = doc.id,
+                        descricao = doc.data["descricao"]?.toString() ?: "—",
+                        duracao = doc.data["duracao"]?.toString() ?: "0",
+                        preco = doc.data["preco"]?.toString() ?: "0"
+                    )
                 }
 
-                _state.value = _state.value.copy(
-                    passeios = passeios
-                )
+                _state.value = _state.value.copy(passeios = passeiosUi)
 
             } catch (e: Exception) {
                 _state.value = _state.value.copy(error = e.message)
-            }
-        }
-    }
-
-    fun getFornecedorDataDoUserLogado() {
-        viewModelScope.launch {
-            try {
-                _state.value = _state.value.copy(loading = true)
-
-                val user = AppwriteService.account.get()
-
-                val result = AppwriteService.databases.listDocuments(
-                    databaseId = DB_ID,
-                    collectionId = COLLECTION_FORNECEDOR,
-                    queries = listOf(
-                        Query.equal("userId", user.id)
-                    )
-                )
-
-                if (result.documents.isNotEmpty()) {
-                    _state.value = _state.value.copy(
-                        fornecedor = result.documents.first(),
-                        loading = false,
-                        error = null
-                    )
-                } else {
-                    _state.value = _state.value.copy(
-                        error = "Fornecedor não encontrado",
-                        loading = false
-                    )
-                }
-
-            } catch (e: Exception) {
-                _state.value = _state.value.copy(
-                    error = e.message,
-                    loading = false
-                )
             }
         }
     }
