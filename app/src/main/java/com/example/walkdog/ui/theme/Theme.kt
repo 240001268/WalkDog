@@ -40,7 +40,7 @@ private val LightColors = lightColorScheme(
 
 @Composable
 fun WalkDogTheme(
-    darkTheme: Boolean = isSystemInDarkTheme(),
+    darkTheme: Boolean = false,
     // Dynamic color is available on Android 12+
     dynamicColor: Boolean = true,
     content: @Composable () -> Unit

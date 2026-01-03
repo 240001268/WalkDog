@@ -91,7 +91,7 @@ class FormularioClienteViewModel : ViewModel() {
                     collectionId = COLLECTION_CLIENTE,
                     documentId = clienteId,
                     data = mapOf(
-                        "clienteId" to clienteId,     // ID da conta
+                        "userId" to clienteId,     // ID da conta
                         "nome" to nome,
                         "morada" to morada,
                         "codpostal" to codPostal,

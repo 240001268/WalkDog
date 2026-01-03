@@ -89,15 +89,15 @@ class FormularioFornecedorViewModel : ViewModel() {
                     documentId = fornecedorId,
                     data = mapOf(
                         "nome" to nome,
-                        "morada" to listOf(morada),         // String[]
-                        "codpostal" to codPostal.toInt(),   // Integer
+                        "morada" to morada,         // String[]
+                        "codpostal" to codPostal,   // Integer
                         "localidade" to localidade,
-                        "nif" to nif.toInt(),               // Integer
+                        "nif" to nif,               // Integer
                         "email" to email,
                         "senha" to password,                // STRING REQUIRED
                         "IBAN" to iban,
                         "FotoID" to (fotoUrl ?: ""),
-                        "fornecedorId" to fornecedorId
+                        "userId" to fornecedorId
                     )
                 )
 
