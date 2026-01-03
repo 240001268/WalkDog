@@ -3,6 +3,7 @@
 package com.example.walkdog.screens
 
 import android.net.Uri
+import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.*
@@ -31,6 +32,7 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.rememberAsyncImagePainter
 import com.example.walkdog.viewmodel.FormularioClienteViewModel
+import android.content.Intent
 
 /* ---------------- INPUT FIELD ---------------- */
 
@@ -122,14 +124,41 @@ fun FormularioClienteScreen(
     var fotoUri by remember { mutableStateOf<Uri?>(null) }
 
     val imagePicker = rememberLauncherForActivityResult(
-        ActivityResultContracts.GetContent()
-    ) { uri -> fotoUri = uri }
+        ActivityResultContracts.OpenDocument()
+    ) { uri ->
+        uri?.let {
+            context.contentResolver.takePersistableUriPermission(
+                it,
+                Intent.FLAG_GRANT_READ_URI_PERMISSION
+            )
+            fotoUri = it
+        }
+    }
 
     var erroDialog by remember { mutableStateOf<List<String>?>(null) }
 
     LaunchedEffect(uiState.success) {
         if (uiState.success) {
-            onSaveClick()
+            Toast.makeText(
+                context,
+                "Cliente registado com sucesso!",
+                Toast.LENGTH_SHORT
+            ).show()
+
+            // LIMPAR FORMULÁRIO
+            nome = ""
+            morada = ""
+            codPostal = ""
+            localidade = ""
+            nif = ""
+            email = ""
+            password = ""
+            numeroCartao = ""
+            validade = ""
+            cvv = ""
+            iban = ""
+            fotoUri = null
+
             viewModel.resetState()
         }
     }
@@ -200,7 +229,7 @@ fun FormularioClienteScreen(
                             .size(100.dp)
                             .clip(CircleShape)
                             .background(Color.LightGray)
-                            .clickable { imagePicker.launch("image/*") },
+                            .clickable { imagePicker.launch(arrayOf("image/*")) },
                         contentAlignment = Alignment.Center
                     ) {
                         if (fotoUri != null) {

@@ -97,9 +97,15 @@ fun FormularioFornecedorScreen(
     var fotoUri by remember { mutableStateOf<Uri?>(null) }
 
     val imagePicker = rememberLauncherForActivityResult(
-        ActivityResultContracts.GetContent()
+        ActivityResultContracts.OpenDocument()
     ) { uri ->
-        fotoUri = uri
+        uri?.let {
+            context.contentResolver.takePersistableUriPermission(
+                it,
+                android.content.Intent.FLAG_GRANT_READ_URI_PERMISSION
+            )
+            fotoUri = it
+        }
     }
 
     var erroDialog by remember { mutableStateOf<List<String>?>(null) }
@@ -122,14 +128,25 @@ fun FormularioFornecedorScreen(
         )
     }
 
-    LaunchedEffect(key1 = state.success) {
+    LaunchedEffect(state.success) {
         if (state.success) {
+
             Toast.makeText(
                 context,
                 "Fornecedor registado com sucesso!",
                 Toast.LENGTH_SHORT
             ).show()
-            onSaveClick()
+
+            // LIMPAR FORMULÁRIO
+            nome = ""
+            morada = ""
+            codPostal = ""
+            localidade = ""
+            nif = ""
+            email = ""
+            password = ""
+            iban = ""
+            fotoUri = null
         }
     }
 
@@ -181,7 +198,7 @@ fun FormularioFornecedorScreen(
                             .size(110.dp)
                             .clip(CircleShape)
                             .background(Color.LightGray)
-                            .clickable { imagePicker.launch("image/*") },
+                            .clickable { imagePicker.launch(arrayOf("image/*")) },
                         contentAlignment = Alignment.Center
                     ) {
                         if (fotoUri != null) {
@@ -264,12 +281,14 @@ fun FormularioFornecedorScreen(
 
                 Button(
                     onClick = {
+
                         val erros = mutableListOf<String>()
 
                         if (nome.isBlank()) erros.add("Nome")
                         if (email.isBlank()) erros.add("Email")
                         if (password.isBlank()) erros.add("Password")
-                        if (iban.isBlank()) erros.add("IBAN")
+
+
 
                         if (erros.isNotEmpty()) {
                             erroDialog = erros

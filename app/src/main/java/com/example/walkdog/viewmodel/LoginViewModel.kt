@@ -19,9 +19,9 @@ data class LoginUiState(
     val userId: String? = null
 )
 
-private val DB_ID = "69236f45003447bc5844"
-private val COLLECTION_CLIENTES = "69236f5200282814eb3c"
-private val COLLECTION_FORNECEDORES = "69236f93001828d82b6f"
+private const val DB_ID = "69236f45003447bc5844"
+private const val COLLECTION_CLIENTES = "69236f5200282814eb3c"
+private const val COLLECTION_FORNECEDORES = "69236f93001828d82b6f"
 
 class LoginViewModel(
     private val appwrite: AppwriteService
@@ -30,21 +30,21 @@ class LoginViewModel(
     private val _state = MutableStateFlow(LoginUiState())
     val state: StateFlow<LoginUiState> = _state
 
-    // LOGIN CLIENTE (default)
     fun login(email: String, password: String) {
         login(email, password, "cliente")
     }
 
-    // LOGIN COM TIPO (cliente / fornecedor)
     fun login(email: String, password: String, tipo: String) {
         viewModelScope.launch {
             try {
                 _state.value = LoginUiState(loading = true)
 
-                val account = appwrite.account
-                account.createEmailPasswordSession(email, password)
+                appwrite.account.createEmailPasswordSession(
+                    email = email,
+                    password = password
+                )
 
-                val user = account.get()
+                val user = appwrite.account.get()
                 val userId = user.id
 
                 val existeCliente = try {
@@ -69,11 +69,10 @@ class LoginViewModel(
                     false
                 }
 
-                // 🔐 VALIDAÇÃO DE TIPO
                 when (tipo) {
                     "cliente" -> {
                         if (!existeCliente) {
-                            account.deleteSession("current")
+                            appwrite.account.deleteSession("current")
                             _state.value = LoginUiState(
                                 error = "Esta conta não é de cliente."
                             )
@@ -83,7 +82,7 @@ class LoginViewModel(
 
                     "fornecedor" -> {
                         if (!existeFornecedor) {
-                            account.deleteSession("current")
+                            appwrite.account.deleteSession("current")
                             _state.value = LoginUiState(
                                 error = "Esta conta não é de fornecedor."
                             )
@@ -92,7 +91,6 @@ class LoginViewModel(
                     }
                 }
 
-                // ✅ LOGIN VÁLIDO
                 _state.value = LoginUiState(
                     success = true,
                     route = tipo,
@@ -100,24 +98,28 @@ class LoginViewModel(
                 )
 
             } catch (e: AppwriteException) {
-                _state.value = LoginUiState(error = e.message)
+                Log.e("LOGIN", "Erro Appwrite", e)
+                _state.value = LoginUiState(
+                    error = e.message ?: "Erro de autenticação"
+                )
             } catch (e: Exception) {
-                _state.value = LoginUiState(error = "Erro inesperado")
+                Log.e("LOGIN", "Erro inesperado", e)
+                _state.value = LoginUiState(
+                    error = "Erro inesperado ao fazer login"
+                )
             }
         }
-    }
-
-    fun setError(message: String) {
-        _state.value = LoginUiState(error = message)
     }
 
     fun logout(navController: NavController) {
         viewModelScope.launch {
             try {
                 appwrite.account.deleteSession("current")
-                navController.navigate("login")
-            } catch (ex: Exception) {
-                ex.message?.let { Log.e("Logout", it) }
+                navController.navigate("login") {
+                    popUpTo(0)
+                }
+            } catch (e: Exception) {
+                Log.e("LOGOUT", e.message ?: "Erro ao fazer logout")
             }
         }
     }
@@ -127,21 +129,33 @@ class LoginViewModel(
             try {
                 _state.value = LoginUiState(loading = true)
 
-                val account = appwrite.account
-                account.create(
+                appwrite.account.create(
                     userId = ID.unique(),
                     email = email,
                     password = password,
                     name = name
                 )
 
+                appwrite.account.createEmailPasswordSession(
+                    email = email,
+                    password = password
+                )
+
                 _state.value = LoginUiState(success = true)
 
             } catch (e: AppwriteException) {
-                _state.value = LoginUiState(error = "Erro Appwrite: ${e.message}")
+                _state.value = LoginUiState(
+                    error = e.message ?: "Erro ao registar"
+                )
             } catch (e: Exception) {
-                _state.value = LoginUiState(error = e.message ?: "Erro desconhecido")
+                _state.value = LoginUiState(
+                    error = "Erro inesperado"
+                )
             }
         }
+    }
+
+    fun setError(message: String) {
+        _state.value = LoginUiState(error = message)
     }
 }

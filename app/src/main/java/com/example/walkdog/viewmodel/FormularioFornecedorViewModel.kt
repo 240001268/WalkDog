@@ -7,16 +7,21 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.walkdog.service.AppwriteService
 import io.appwrite.ID
-import io.appwrite.models.InputFile
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
+import java.io.File
+import kotlinx.coroutines.delay
+
+/* ---------- STATE ---------- */
 
 data class FormularioFornecedorState(
     val loading: Boolean = false,
     val success: Boolean = false,
     val error: String? = null
 )
+
+/* ---------- VIEWMODEL ---------- */
 
 class FormularioFornecedorViewModel : ViewModel() {
 
@@ -25,7 +30,7 @@ class FormularioFornecedorViewModel : ViewModel() {
 
     private val DB_ID = "69236f45003447bc5844"
     private val COLLECTION_FORNECEDOR = "69236f93001828d82b6f"
-    private val BUCKET_FOTOS = "fornecedorFotos" // certifique-se que existe no Appwrite
+    private val BUCKET_FOTOS = "fornecedorFotos"
 
     fun salvarFornecedor(
         context: Context,
@@ -40,84 +45,83 @@ class FormularioFornecedorViewModel : ViewModel() {
         fotoUri: Uri?
     ) {
         viewModelScope.launch {
-
             try {
                 _state.value = FormularioFornecedorState(loading = true)
 
-                // ----------------------------------------------------------
-                // 1) CRIAR CONTA AUTENTICADA
-                // ----------------------------------------------------------
-                val conta = AppwriteService.account.create(
+                // 1️⃣ Criar conta Auth
+                AppwriteService.account.create(
                     userId = ID.unique(),
                     email = email,
                     password = password,
                     name = nome
                 )
 
-                val fornecedorId = conta.id  // Document ID será igual ao ID da Auth
+                // 2️⃣ Login
+                AppwriteService.account.createEmailPasswordSession(
+                    email = email,
+                    password = password
+                )
 
-                // ----------------------------------------------------------
-                // 2) UPLOAD DA FOTO (se existir)
-                // ----------------------------------------------------------
-                var fotoUrl: String? = null
+                delay(600)
+
+                val userId = AppwriteService.account.get().id
+
+                // 3️⃣ Upload da foto
+                var fotoId = ""
 
                 if (fotoUri != null) {
 
-                    val bytes = context.contentResolver.openInputStream(fotoUri)!!.readBytes()
+                    val tempFile = File.createTempFile(
+                        "fornecedor_",
+                        ".jpg",
+                        context.cacheDir
+                    )
+
+                    context.contentResolver.openInputStream(fotoUri)?.use { input ->
+                        tempFile.outputStream().use { output ->
+                            input.copyTo(output)
+                        }
+                    } ?: throw Exception("Não foi possível abrir a imagem")
+
+                    if (tempFile.length() == 0L) {
+                        tempFile.delete()
+                        throw Exception("Imagem inválida ou vazia")
+                    }
 
                     val upload = AppwriteService.storage.createFile(
                         bucketId = BUCKET_FOTOS,
                         fileId = ID.unique(),
-                        file = InputFile.fromBytes(
-                            filename = "foto_${fornecedorId}.jpg",
-                            bytes = bytes
-                        )
+                        file = io.appwrite.models.InputFile.fromFile(tempFile)
                     )
 
-                    // Gerar URL pública correta
-                    val projectId = AppwriteService.client.config["project"]
-                    fotoUrl =
-                        "${AppwriteService.client.endpoint}/storage/buckets/$BUCKET_FOTOS/files/${upload.id}/view?project=$projectId"
+                    fotoId = upload.id
+                    tempFile.delete()
                 }
 
-                // ----------------------------------------------------------
-                // 3) CRIAR DOCUMENTO FORNECEDOR (CAMPOS CONFORME O APPWRITE)
-                // ----------------------------------------------------------
+                // 4️⃣ Criar documento
                 AppwriteService.databases.createDocument(
                     databaseId = DB_ID,
                     collectionId = COLLECTION_FORNECEDOR,
-                    documentId = fornecedorId,
+                    documentId = userId,
                     data = mapOf(
+                        "userId" to userId,
                         "nome" to nome,
-                        "morada" to listOf(morada),         // String[]
-                        "codpostal" to codPostal.toInt(),   // Integer
-                        "localidade" to localidade,
-                        "nif" to nif.toInt(),               // Integer
                         "email" to email,
-                        "senha" to password,                // STRING REQUIRED
-                        "IBAN" to iban,
-                        "FotoID" to (fotoUrl ?: ""),
-                        "fornecedorId" to fornecedorId
+                        "senha" to password,
+                        "fotoId" to fotoId
                     )
                 )
 
-                Log.d("FORM_FORNECEDOR", "Documento criado com ID = $fornecedorId")
+                // 5️⃣ Logout
+                AppwriteService.account.deleteSession("current")
 
-                // ----------------------------------------------------------
-                // 4) SUCESSO
-                // ----------------------------------------------------------
-                _state.value = FormularioFornecedorState(
-                    success = true,
-                    loading = false
-                )
+                _state.value = FormularioFornecedorState(success = true)
 
             } catch (e: Exception) {
-
-                Log.e("FORM_FORNECEDOR", "ERRO AO CRIAR FORNECEDOR", e)
-
+                Log.e("FORM_FORNECEDOR", "ERRO REAL", e)
                 _state.value = FormularioFornecedorState(
-                    error = e.message,
-                    loading = false
+                    loading = false,
+                    error = e.message
                 )
             }
         }

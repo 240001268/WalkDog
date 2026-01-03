@@ -11,7 +11,7 @@ import io.appwrite.models.InputFile
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
-
+import java.io.File
 
 data class FormularioClienteState(
     val loading: Boolean = false,
@@ -47,82 +47,98 @@ class FormularioClienteViewModel : ViewModel() {
             try {
                 _state.value = FormularioClienteState(loading = true)
 
-                // ------------------------------------------------------------------
-                // 1) Criar conta Appwrite
-                // ------------------------------------------------------------------
-                val conta = AppwriteService.account.create(
+                // 1️⃣ Criar conta Auth
+                AppwriteService.account.create(
                     userId = ID.unique(),
                     email = email,
                     password = password,
                     name = nome
                 )
 
-                val clienteId = conta.id  // DocumentId será o mesmo id da auth
+                // 2️⃣ Login imediato
+                AppwriteService.account.createEmailPasswordSession(
+                    email = email,
+                    password = password
+                )
 
-                // ------------------------------------------------------------------
-                // 2) Upload da foto
-                // ------------------------------------------------------------------
-                var fotoUrl: String? = null
+                // 3️⃣ User autenticado
+                val user = AppwriteService.account.get()
+                val userId = user.id
+
+                // 4️⃣ Upload foto (opcional)
+                var fotoId = ""
 
                 if (fotoUri != null) {
+                    val resolver = context.contentResolver
 
-                    val bytes = context.contentResolver.openInputStream(fotoUri)!!.readBytes()
-
-                    val upload = AppwriteService.storage.createFile(
-                        bucketId = BUCKET_FOTOS_CLIENTE,
-                        fileId = ID.unique(),
-                        file = InputFile.fromBytes(
-                            filename = "foto_${clienteId}.jpg",
-                            bytes = bytes
-                        )
+                    // 1️⃣ Criar ficheiro temporário (API 24+)
+                    val tempFile = File.createTempFile(
+                        "upload_",
+                        ".jpg",
+                        context.cacheDir
                     )
 
-                    val projectId = AppwriteService.client.config["project"]
-                    fotoUrl =
-                        "${AppwriteService.client.endpoint}/storage/buckets/$BUCKET_FOTOS_CLIENTE/files/${upload.id}/view?project=$projectId"
+                    resolver.openInputStream(fotoUri)?.use { input ->
+                        tempFile.outputStream().use { output ->
+                            input.copyTo(output)
+                        }
+                    } ?: throw Exception("Erro ao abrir imagem")
+
+                    // 2️⃣ Upload para Appwrite (ESTÁVEL)
+                    val uploadResult = AppwriteService.storage.createFile(
+                        bucketId = BUCKET_FOTOS_CLIENTE,
+                        fileId = ID.unique(),
+                        file = InputFile.fromFile(tempFile)
+                    )
+
+                    fotoId = uploadResult.id
+
+                    // 3️⃣ Limpar ficheiro temporário
+                    tempFile.delete()
                 }
 
-                // ------------------------------------------------------------------
-                // 3) Criar documento cliente
-                //      → Campos EXATAMENTE como estão na tua Base de Dados
-                // ------------------------------------------------------------------
+                // 5️⃣ Criar documento CLIENTE (⚠️ userId INCLUÍDO)
                 AppwriteService.databases.createDocument(
                     databaseId = DB_ID,
                     collectionId = COLLECTION_CLIENTE,
-                    documentId = clienteId,
+                    documentId = userId,
                     data = mapOf(
-                        "clienteId" to clienteId,     // ID da conta
+                        "userId" to userId,
                         "nome" to nome,
-                        "morada" to morada,
-                        "codpostal" to codPostal,
-                        "localidade" to localidade,
-                        "NIF" to NIF,
                         "email" to email,
-                        "senha" to password,          // existe na tua BD
+                        "senha" to password,
+                        "localidade" to localidade,
+                        "morada" to morada,
                         "numeroCartao" to numeroCartao,
                         "validade" to validade,
-                        "cvv" to cvv,
                         "iban" to iban,
-                        "fotoId" to (fotoUrl ?: "")
+                        "fotoId" to fotoId,
+                        "cvv" to cvv,
+                        "codpostal" to codPostal,
+                        "NIF" to NIF
+                    ),
+                    permissions = listOf(
+                        io.appwrite.Permission.read(io.appwrite.Role.user(userId)),
+                        io.appwrite.Permission.update(io.appwrite.Role.user(userId)),
+                        io.appwrite.Permission.delete(io.appwrite.Role.user(userId))
                     )
                 )
 
-                // ------------------------------------------------------------------
-                // 4) Sucesso
-                // ------------------------------------------------------------------
+                AppwriteService.account.deleteSession("current")
+
                 _state.value = FormularioClienteState(
                     loading = false,
                     success = true
                 )
 
             } catch (e: Exception) {
-
                 Log.e("FORM_CLIENTE", "ERRO AO CRIAR CLIENTE", e)
-
                 _state.value = FormularioClienteState(
                     loading = false,
                     error = e.message
+
                 )
+                Log.e("FORM_CLIENTE", "ERRO REAL APPWRITE: ${e.message}", e)
             }
         }
     }
