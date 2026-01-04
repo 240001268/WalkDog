@@ -8,6 +8,9 @@ import io.appwrite.services.Storage
 
 object AppwriteService {
 
+    const val ENDPOINT = "https://appwrite.hugetower.cloud/v1"
+    const val PROJECT_ID = "691e407c0036fe1c7f17"
+
     private var _client: Client? = null
     val client: Client
         get() = _client ?: throw IllegalStateException("AppwriteService not initialized")
@@ -25,12 +28,11 @@ object AppwriteService {
         get() = _storage ?: throw IllegalStateException("Storage not initialized")
 
     fun init(context: Context) {
-        if (_client != null) return // já inicializado
+        if (_client != null) return
 
-        // ✅ context aqui deve ser applicationContext (garantido por quem chama)
-        _client = Client(context)
-            .setEndpoint("https://appwrite.hugetower.cloud/v1")
-            .setProject("691e407c0036fe1c7f17")
+        _client = Client(context.applicationContext)
+            .setEndpoint(ENDPOINT)
+            .setProject(PROJECT_ID)
 
         _account = Account(client)
         _databases = Databases(client)

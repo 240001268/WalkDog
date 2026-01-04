@@ -14,6 +14,7 @@ import kotlinx.coroutines.launch
 // ----------------------------------------------------
 data class PasseioFornecedorUi(
     val id: String,
+    val tipoId: String,
     val descricao: String,
     val duracao: String,
     val preco: String
@@ -122,6 +123,8 @@ class PerfilFornecedorViewModel : ViewModel() {
                 val passeiosUi = result.documents.map { doc ->
                     PasseioFornecedorUi(
                         id = doc.id,
+                        tipoId = doc.data["TipoPasseio"]?.toString()
+                            ?: error("Passeio sem TipoPasseio"),
                         descricao = doc.data["descricao"]?.toString() ?: "—",
                         duracao = doc.data["duracao"]?.toString() ?: "0",
                         preco = doc.data["preco"]?.toString() ?: "0"

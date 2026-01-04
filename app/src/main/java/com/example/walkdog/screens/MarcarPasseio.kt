@@ -1,17 +1,14 @@
 package com.example.walkdog.screens
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.walkdog.viewmodel.MarcarPasseioViewModel
 import androidx.compose.material3.MenuAnchorType
@@ -19,11 +16,8 @@ import androidx.compose.material3.MenuAnchorType
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MarcarPasseioScreen(
-    onBackClick: () -> Unit = {}
+    onBackClick: () -> Unit
 ) {
-    // --------------------------------
-    // VIEWMODEL
-    // --------------------------------
     val viewModel: MarcarPasseioViewModel = viewModel()
     val state by viewModel.state.collectAsState()
 
@@ -37,251 +31,220 @@ fun MarcarPasseioScreen(
         if (state.success) onBackClick()
     }
 
-    // --------------------------------
-    // CAMPOS LOCAIS
-    // --------------------------------
+    val roxoFieldColors = OutlinedTextFieldDefaults.colors(
+        focusedBorderColor = MaterialTheme.colorScheme.primary,
+        unfocusedBorderColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.6f),
+        focusedLabelColor = MaterialTheme.colorScheme.primary,
+        unfocusedLabelColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.7f),
+        cursorColor = MaterialTheme.colorScheme.primary
+    )
+
     var localidade by remember { mutableStateOf("") }
     var horaInicio by remember { mutableStateOf("") }
-    var caoNome by remember { mutableStateOf("") }
 
-    // --------------------------------
-    // UI
-    // --------------------------------
     Scaffold(
         topBar = {
             TopAppBar(
-                title = {
-                    Text(
-                        "Marcar Passeio",
-                        color = Color.White,
-                        fontSize = 20.sp,
-                        fontWeight = FontWeight.Bold
-                    )
-                },
+                title = { Text("Marcar Passeio") },
                 navigationIcon = {
                     IconButton(onClick = onBackClick) {
-                        Icon(
-                            Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "Voltar",
-                            tint = Color.White
-                        )
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Voltar")
                     }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = Color(0xFF6A1B9A)
-                )
+                }
             )
         }
     ) { padding ->
 
-        Column(
+        LazyColumn(
             modifier = Modifier
+                .fillMaxSize()
+                .background(MaterialTheme.colorScheme.background)
                 .padding(padding)
                 .padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(18.dp)
+            verticalArrangement = Arrangement.spacedBy(20.dp)
         ) {
 
-            // --------------------------------------------------
-            // SELECIONAR CÃO
-            // --------------------------------------------------
-            var expandedDog by remember { mutableStateOf(false) }
-            var selectedDogLabel by remember { mutableStateOf("") }
+            // -----------------------
+            // CÃO
+            // -----------------------
+            item {
+                FormSection(title = "Cão") {
+                    DropdownSelector(
+                        label = "Selecionar cão",
+                        options = state.caes.map { it.data["nome"]?.toString() ?: "Cão" },
+                        onSelected = { index ->
+                            viewModel.selecionarCao(state.caes[index].id)
 
-            ExposedDropdownMenuBox(
-                expanded = expandedDog,
-                onExpandedChange = { expandedDog = !expandedDog }
-            ) {
-                OutlinedTextField(
-                    value = selectedDogLabel,
-                    onValueChange = {},
-                    readOnly = true,
-                    label = { Text("Selecionar Cão") },
-                    trailingIcon = {
-                        ExposedDropdownMenuDefaults.TrailingIcon(expandedDog)
-                    },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .menuAnchor(MenuAnchorType.PrimaryNotEditable),
-                    shape = RoundedCornerShape(12.dp)
-                )
-
-                ExposedDropdownMenu(
-                    expanded = expandedDog,
-                    onDismissRequest = { expandedDog = false }
-                ) {
-                    state.caes.forEach { doc ->
-                        val nome = doc.data["nome"]?.toString() ?: ""
-
-                        DropdownMenuItem(
-                            text = { Text(nome) },
-                            onClick = {
-                                selectedDogLabel = nome
-                                caoNome = nome
-                                viewModel.selecionarCao(doc.id)
-                                expandedDog = false
-                            }
-                        )
-                    }
-                }
-            }
-
-            // --------------------------------------------------
-            // LOCALIDADE
-            // --------------------------------------------------
-            OutlinedTextField(
-                value = localidade,
-                onValueChange = { localidade = it },
-                label = { Text("Localidade") },
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(12.dp)
-            )
-
-            // --------------------------------------------------
-            // HORA INÍCIO
-            // --------------------------------------------------
-            OutlinedTextField(
-                value = horaInicio,
-                onValueChange = { horaInicio = it },
-                label = { Text("Hora Início (ex: 17:00)") },
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(12.dp)
-            )
-
-            // --------------------------------------------------
-            // SELECIONAR PASSEIO
-            // --------------------------------------------------
-            var expandedPasseio by remember { mutableStateOf(false) }
-            var passeioLabel by remember { mutableStateOf("") }
-
-            ExposedDropdownMenuBox(
-                expanded = expandedPasseio,
-                onExpandedChange = { expandedPasseio = !expandedPasseio }
-            ) {
-                OutlinedTextField(
-                    value = passeioLabel,
-                    onValueChange = {},
-                    readOnly = true,
-                    label = { Text("Tipo de Passeio") },
-                    trailingIcon = {
-                        ExposedDropdownMenuDefaults.TrailingIcon(expandedPasseio)
-                    },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .menuAnchor(MenuAnchorType.PrimaryNotEditable),
-                    shape = RoundedCornerShape(12.dp)
-                )
-
-                ExposedDropdownMenu(
-                    expanded = expandedPasseio,
-                    onDismissRequest = { expandedPasseio = false }
-                ) {
-                    state.passeios.forEach { doc ->
-                        val descricao = doc.data["descricao"]?.toString() ?: ""
-                        val duracao = doc.data["duracao"]?.toString() ?: ""
-                        val preco = doc.data["preco"]?.toString() ?: ""
-
-                        DropdownMenuItem(
-                            text = { Text("$descricao - $duracao (€$preco)") },
-                            onClick = {
-                                passeioLabel = "$descricao - $duracao"
-                                viewModel.selecionarPasseio(doc)
-                                expandedPasseio = false
-                            }
-                        )
-                    }
-                }
-            }
-
-            // --------------------------------------------------
-            // SELECIONAR FORNECEDOR
-            // --------------------------------------------------
-            var expandedFornecedor by remember { mutableStateOf(false) }
-            var fornecedorLabel by remember { mutableStateOf("") }
-
-            ExposedDropdownMenuBox(
-                expanded = expandedFornecedor,
-                onExpandedChange = { expandedFornecedor = !expandedFornecedor }
-            ) {
-                OutlinedTextField(
-                    value = fornecedorLabel,
-                    onValueChange = {},
-                    readOnly = true,
-                    label = { Text("Fornecedor") },
-                    trailingIcon = {
-                        ExposedDropdownMenuDefaults.TrailingIcon(expandedFornecedor)
-                    },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .menuAnchor(MenuAnchorType.PrimaryNotEditable),
-                    shape = RoundedCornerShape(12.dp)
-                )
-
-                ExposedDropdownMenu(
-                    expanded = expandedFornecedor,
-                    onDismissRequest = { expandedFornecedor = false }
-                ) {
-                    state.fornecedores.forEach { doc ->
-                        val nome = doc.data["nome"]?.toString() ?: ""
-                        val localidadeFornecedor =
-                            doc.data["localidade"]?.toString() ?: ""
-
-                        DropdownMenuItem(
-                            text = { Text("$nome - $localidadeFornecedor") },
-                            onClick = {
-                                fornecedorLabel = "$nome - $localidadeFornecedor"
-                                viewModel.selecionarFornecedor(doc.id)
-                                expandedFornecedor = false
-                            }
-                        )
-                    }
-                }
-            }
-
-            // --------------------------------------------------
-            // PREÇO + CONFIRMAR
-            // --------------------------------------------------
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-
-                Column {
-                    Text("Preço do Passeio", color = Color.Gray)
-                    Text(
-                        text = state.precoFinal.ifBlank { "--" },
-                        fontSize = 24.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = Color(0xFF6A1B9A)
+                        }
                     )
                 }
+            }
 
+            // -----------------------
+            // PASSEIO
+            // -----------------------
+            item {
+                FormSection(title = "Passeio") {
+
+                    DropdownSelector(
+                        label = "Tipo de passeio",
+                        options = state.passeios.map {
+                            it.data["descricao"]?.toString() ?: "Passeio"
+                        },
+                        onSelected = { index ->
+                            viewModel.selecionarPasseio(state.passeios[index])
+                        }
+                    )
+
+                    Spacer(Modifier.height(12.dp))
+
+                    // ✅ VALOR DO PASSEIO (NO CONTEXTO CERTO)
+                    OutlinedTextField(
+                        value = state.precoFinal?.let { "$it €" } ?: "--",
+                        onValueChange = {},
+                        readOnly = true,
+                        label = { Text("Valor do passeio") },
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                }
+            }
+
+            // -----------------------
+            // FORNECEDOR
+            // -----------------------
+            item {
+                FormSection(title = "Fornecedor (opcional)") {
+                    DropdownSelector(
+                        label = "Fornecedor",
+                        options = listOf("Sem fornecedor") +
+                                state.fornecedores.map {
+                                    it.data["nome"]?.toString() ?: "Fornecedor"
+                                },
+                        onSelected = { index ->
+                            if (index == 0) {
+                                viewModel.selecionarFornecedor(null)
+                            } else {
+                                viewModel.selecionarFornecedor(
+                                    state.fornecedores[index - 1].id
+                                )
+                            }
+                        }
+                    )
+                }
+            }
+
+            // -----------------------
+            // LOCAL / HORA
+            // -----------------------
+            item {
+                FormSection(title = "Detalhes") {
+                    OutlinedTextField(
+                        value = localidade,
+                        onValueChange = { localidade = it },
+                        label = { Text("Localidade") },
+                        modifier = Modifier.fillMaxWidth(),
+                        colors = roxoFieldColors
+                    )
+
+                    Spacer(Modifier.height(12.dp))
+
+                    OutlinedTextField(
+                        value = horaInicio,
+                        onValueChange = { horaInicio = it },
+                        label = { Text("Hora de início") },
+                        modifier = Modifier.fillMaxWidth(),
+                        colors = roxoFieldColors
+                    )
+                }
+            }
+
+            // -----------------------
+            // CONFIRMAR
+            // -----------------------
+            item {
                 Button(
                     onClick = {
-                        viewModel.confirmarPasseio(
-                            caoNome = caoNome,
-                            localidade = localidade,
-                            horaInicio = horaInicio
-                        )
+                        viewModel.confirmarPasseio(localidade, horaInicio)
                     },
-                    enabled =
-                        state.precoFinal.isNotBlank() &&
-                                state.fornecedorSelecionadoId != null &&
-                                !state.loading,
-                    shape = RoundedCornerShape(12.dp),
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = Color(0xFF6A1B9A)
-                    )
+                    modifier = Modifier.fillMaxWidth(),
+                    enabled = !state.loading &&
+                            state.caoSelecionadoId != null &&
+                            state.tipoPasseioSelecionado != null
                 ) {
-                    Text("Confirmar", color = Color.White)
+                    if (state.loading) {
+                        CircularProgressIndicator(
+                            modifier = Modifier.size(20.dp),
+                            strokeWidth = 2.dp
+                        )
+                    } else {
+                        Text("Confirmar pedido")
+                    }
                 }
             }
 
-            // --------------------------------------------------
+            // -----------------------
             // ERRO
-            // --------------------------------------------------
+            // -----------------------
             state.error?.let {
-                Text(it, color = Color.Red)
+                item {
+                    Text(it, color = MaterialTheme.colorScheme.error)
+                }
+            }
+        }
+    }
+}
+@Composable
+fun FormSection(
+    title: String,
+    content: @Composable ColumnScope.() -> Unit
+) {
+    Column {
+        Text(title, style = MaterialTheme.typography.titleMedium)
+        Spacer(Modifier.height(8.dp))
+        content()
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun DropdownSelector(
+    label: String,
+    options: List<String>,
+    onSelected: (Int) -> Unit
+) {
+    var expanded by remember { mutableStateOf(false) }
+    var selectedLabel by remember { mutableStateOf("") }
+
+    ExposedDropdownMenuBox(
+        expanded = expanded,
+        onExpandedChange = { expanded = !expanded }
+    ) {
+        OutlinedTextField(
+            value = selectedLabel,
+            onValueChange = {},
+            readOnly = true,
+            label = { Text(label) },
+            trailingIcon = {
+                ExposedDropdownMenuDefaults.TrailingIcon(expanded)
+            },
+            modifier = Modifier
+                .fillMaxWidth()
+                .menuAnchor(MenuAnchorType.PrimaryNotEditable)
+        )
+
+        ExposedDropdownMenu(
+            expanded = expanded,
+            onDismissRequest = { expanded = false }
+        ) {
+            options.forEachIndexed { index, option ->
+                DropdownMenuItem(
+                    text = { Text(option) },
+                    onClick = {
+                        selectedLabel = option
+                        onSelected(index)
+                        expanded = false
+                    }
+                )
             }
         }
     }

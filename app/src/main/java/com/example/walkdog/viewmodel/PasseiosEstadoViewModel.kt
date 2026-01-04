@@ -11,9 +11,9 @@ import kotlinx.coroutines.launch
 
 data class PasseioEstadoUi(
     val id: String,
-    val fornecedorId: String,
-    val fornecedorNome: String,
-    val fornecedorRating: Double,
+    val fornecedorId: String?,
+    val fornecedorNome: String?,
+    val fornecedorRating: Double?,
     val estado: String,
     val avaliado: Boolean,
     val descricao: String,
@@ -83,19 +83,24 @@ class PasseiosEstadoViewModel : ViewModel() {
 
                 val lista = passeiosDocs.documents.map { doc ->
 
-                    val fornecedorId = doc.data["fornecedorId"]?.toString() ?: ""
+                    val fornecedorId = doc.data["fornecedorId"] as? String
 
-                    val fornecedorInfo = fornecedoresCache.getOrPut(fornecedorId) {
-                        val fDoc = AppwriteService.databases.getDocument(
-                            databaseId = DB_ID,
-                            collectionId = COL_FORNECEDORES,
-                            documentId = fornecedorId
-                        )
-                        Pair(
-                            fDoc.data["nome"]?.toString() ?: "Fornecedor",
-                            (fDoc.data["ratingMedio"] as? Number)?.toDouble() ?: 0.0
-                        )
-                    }
+                    val fornecedorInfo: Pair<String, Double>? =
+                        if (!fornecedorId.isNullOrBlank()) {
+                            fornecedoresCache.getOrPut(fornecedorId) {
+                                val fDoc = AppwriteService.databases.getDocument(
+                                    databaseId = DB_ID,
+                                    collectionId = COL_FORNECEDORES,
+                                    documentId = fornecedorId
+                                )
+                                Pair(
+                                    fDoc.data["nome"]?.toString() ?: "Fornecedor",
+                                    (fDoc.data["ratingMedio"] as? Number)?.toDouble() ?: 0.0
+                                )
+                            }
+                        } else {
+                            null
+                        }
 
                     val caoId = doc.data["caoId"]?.toString()
 
@@ -113,8 +118,8 @@ class PasseiosEstadoViewModel : ViewModel() {
                     PasseioEstadoUi(
                         id = doc.id,
                         fornecedorId = fornecedorId,
-                        fornecedorNome = fornecedorInfo.first,
-                        fornecedorRating = fornecedorInfo.second,
+                        fornecedorNome = fornecedorInfo?.first,
+                        fornecedorRating = fornecedorInfo?.second,
                         estado = doc.data["estado"]?.toString() ?: "",
                         avaliado = doc.data["avaliado"] as? Boolean ?: false,
                         descricao = doc.data["descricao"]?.toString() ?: "Passeio",

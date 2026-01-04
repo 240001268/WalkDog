@@ -23,8 +23,8 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.walkdog.viewmodel.PerfilFornecedorViewModel
 import coil.compose.AsyncImage
 import androidx.compose.ui.layout.ContentScale
+import com.example.walkdog.componentes.PasseioFornecedorCard
 import com.example.walkdog.utils.buildFotoFornecedorUrl
-import java.util.Locale
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -39,27 +39,27 @@ fun PerfilFornecedorScreen(
     val viewModel: PerfilFornecedorViewModel = viewModel()
     val state by viewModel.state.collectAsState()
 
-    // 🔙 Back = Logout
-    BackHandler { onLogoutClick() }
+    val isPerfilProprio = fornecedorId == null
 
-    // 🔄 Carregar dados do fornecedor
+    // 🔙 BackHandler só no perfil próprio
+    if (isPerfilProprio) {
+        BackHandler { onLogoutClick() }
+    }
+
+    // 🔄 Carregar dados
     LaunchedEffect(fornecedorId) {
         if (fornecedorId != null) {
-            // 🔓 Perfil público
             viewModel.getFornecedorData(fornecedorId)
         } else {
-            // 🔐 Perfil próprio
             viewModel.getFornecedorDataDoUserLogado()
         }
     }
 
-    // 🔄 Carregar passeios quando o fornecedor existir
     LaunchedEffect(state.fornecedor) {
         if (state.fornecedor != null) {
             viewModel.getPasseiosFornecedor()
         }
     }
-
 
     Scaffold(
         topBar = {
@@ -73,17 +73,19 @@ fun PerfilFornecedorScreen(
                     )
                 },
                 navigationIcon = {
-                    IconButton(onClick = onLogoutClick) {
+                    IconButton(
+                        onClick = {
+                            if (isPerfilProprio) onLogoutClick()
+                        }
+                    ) {
                         Icon(
                             Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "Logout",
+                            contentDescription = null,
                             tint = Color.White
                         )
                     }
                 },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    Color(0xFF6A1B9A)
-                )
+                colors = TopAppBarDefaults.topAppBarColors(Color(0xFF6A1B9A))
             )
         }
     ) { padding ->
@@ -97,23 +99,14 @@ fun PerfilFornecedorScreen(
             verticalArrangement = Arrangement.spacedBy(20.dp)
         ) {
 
-            // ⏳ Loading
-            if (state.loading) {
-                CircularProgressIndicator()
-            }
+            if (state.loading) CircularProgressIndicator()
+            state.error?.let { Text("Erro: $it", color = Color.Red) }
 
-            // ❌ Erro
-            state.error?.let {
-                Text("Erro: $it", color = Color.Red)
-            }
-
-            // --------------------------------------------------------------
-            // CARD DO FORNECEDOR
-            // --------------------------------------------------------------
+            // ---------------- FORNECEDOR ----------------
             state.fornecedor?.let { fornecedor ->
 
-                val fotoId = fornecedor.data["fotoId"]?.toString()
-                val fotoUrl = buildFotoFornecedorUrl(fotoId)
+                val fotoId = fornecedor.data["fotoId"]?.toString()?.takeIf { it.isNotBlank() }
+                val fotoUrl = fotoId?.let { buildFotoFornecedorUrl(it) }
 
                 val nome = fornecedor.data["nome"]?.toString() ?: ""
                 val localidade = fornecedor.data["localidade"]?.toString() ?: ""
@@ -121,9 +114,10 @@ fun PerfilFornecedorScreen(
                 Card(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .clickable { onEditPerfil(fornecedor.id) },
+                        .clickable(enabled = isPerfilProprio) {
+                            onEditPerfil(fornecedor.id)
+                        },
                     shape = RoundedCornerShape(16.dp),
-                    colors = CardDefaults.cardColors(Color.White),
                     elevation = CardDefaults.cardElevation(4.dp)
                 ) {
                     Row(
@@ -133,10 +127,8 @@ fun PerfilFornecedorScreen(
                         if (fotoUrl != null) {
                             AsyncImage(
                                 model = fotoUrl,
-                                contentDescription = "Foto do fornecedor",
-                                modifier = Modifier
-                                    .size(70.dp)
-                                    .clip(CircleShape),
+                                contentDescription = null,
+                                modifier = Modifier.size(70.dp).clip(CircleShape),
                                 contentScale = ContentScale.Crop
                             )
                         } else {
@@ -156,128 +148,48 @@ fun PerfilFornecedorScreen(
                             }
                         }
 
-                        Spacer(modifier = Modifier.width(16.dp))
+                        Spacer(Modifier.width(16.dp))
 
                         Column {
                             Text(nome, fontWeight = FontWeight.Bold, fontSize = 20.sp)
                             Text(localidade, fontSize = 14.sp, color = Color.Gray)
-
-                            Spacer(Modifier.height(4.dp))
-
-                            Text(
-                                text = "⭐ ${String.format(
-                                    Locale.getDefault(),
-                                    "%.1f",
-                                    fornecedor.data["ratingMedio"]?.toString()?.toDoubleOrNull() ?: 0.0
-                                )}",
-                                fontSize = 15.sp,
-                                color = Color(0xFFFFC107),
-                                fontWeight = FontWeight.Medium
-                            )
                         }
                     }
                 }
             }
 
-            // --------------------------------------------------------------
-            // BOTÃO → ESCOLHER PASSEIOS
-            // --------------------------------------------------------------
-            Button(
-                onClick = onEscolherPasseiosClick,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(52.dp),
-                colors = ButtonDefaults.buttonColors(Color(0xFF6A1B9A)),
-                shape = RoundedCornerShape(14.dp)
-            ) {
-                Text(
-                    "Escolher Passeios",
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 17.sp,
-                    color = Color.White
-                )
+            // ---------------- BOTÕES SÓ PERFIL PRÓPRIO ----------------
+            if (isPerfilProprio) {
+
+                Button(
+                    onClick = onEscolherPasseiosClick,
+                    modifier = Modifier.fillMaxWidth().height(52.dp),
+                    colors = ButtonDefaults.buttonColors(Color(0xFF6A1B9A))
+                ) {
+                    Text("Escolher Passeios", color = Color.White)
+                }
+
+                Button(
+                    onClick = onVerPasseiosClick,
+                    modifier = Modifier.fillMaxWidth().height(52.dp),
+                    colors = ButtonDefaults.buttonColors(Color(0xFF6A1B9A))
+                ) {
+                    Text("Ver meus Passeios", color = Color.White)
+                }
             }
 
-            // --------------------------------------------------------------
-            // BOTÃO → VER MEUS PASSEIOS
-            // --------------------------------------------------------------
-            Button(
-                onClick = { onVerPasseiosClick() },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(52.dp),
-                colors = ButtonDefaults.buttonColors(Color(0xFF6A1B9A)),
-                shape = RoundedCornerShape(14.dp)
-            ) {
-                Text(
-                    "Ver meus Passeios",
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 17.sp,
-                    color = Color.White
-                )
-            }
-
-            // --------------------------------------------------------------
-            // LISTA DOS PASSEIOS
-            // --------------------------------------------------------------
-            Text(
-                "Passeios Disponíveis",
-                fontSize = 20.sp,
-                fontWeight = FontWeight.Bold
-            )
+            // ---------------- PASSEIOS ----------------
+            Text("Passeios Disponíveis", fontSize = 20.sp, fontWeight = FontWeight.Bold)
 
             state.passeios.forEach { passeio ->
-
                 PasseioFornecedorCard(
                     descricao = passeio.descricao,
                     duracaoStr = passeio.duracao,
                     precoStr = passeio.preco,
                     onAgendar = {
-                        onScheduleClick(passeio.id)
+                        onScheduleClick(passeio.tipoId)
                     }
                 )
-            }
-        }
-    }
-}
-
-@Composable
-fun PasseioFornecedorCard(
-    descricao: String,
-    duracaoStr: String,
-    precoStr: String,
-    onAgendar: () -> Unit
-) {
-    Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(vertical = 6.dp),
-        shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(Color.White),
-        elevation = CardDefaults.cardElevation(3.dp)
-    ) {
-        Column(modifier = Modifier.padding(16.dp)) {
-
-            Text(
-                text = "Descrição: $descricao",
-                fontSize = 18.sp,
-                fontWeight = FontWeight.Bold
-            )
-
-            Spacer(Modifier.height(6.dp))
-
-            Text("Duração: $duracaoStr", fontSize = 15.sp)
-            Text("Preço: $precoStr", fontSize = 15.sp)
-
-            Spacer(Modifier.height(12.dp))
-
-            Button(
-                onClick = onAgendar,
-                modifier = Modifier.fillMaxWidth(),
-                colors = ButtonDefaults.buttonColors(Color(0xFF6A1B9A)),
-                shape = RoundedCornerShape(12.dp)
-            ) {
-                Text("Agendar Passeio", color = Color.White)
             }
         }
     }

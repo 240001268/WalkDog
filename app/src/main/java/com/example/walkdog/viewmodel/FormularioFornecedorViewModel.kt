@@ -30,7 +30,7 @@ class FormularioFornecedorViewModel : ViewModel() {
 
     private val DB_ID = "69236f45003447bc5844"
     private val COLLECTION_FORNECEDOR = "69236f93001828d82b6f"
-    private val BUCKET_FOTOS = "fornecedorFotos"
+    private val BUCKET_FOTOS = "692ac9e20009e3efed1c"
 
     fun salvarFornecedor(
         context: Context,

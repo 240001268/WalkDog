@@ -88,7 +88,9 @@ fun PasseiosEstadoScreen(
                         viewModel.atualizarEstadoPasseio(passeio.id, it)
                     },
                     onAvaliar = {
-                        onAvaliarFornecedor(passeio.id, passeio.fornecedorId)
+                        passeio.fornecedorId?.let { fornecedorId ->
+                            onAvaliarFornecedor(passeio.id, fornecedorId)
+                        }
                     }
                 )
             }
@@ -162,14 +164,27 @@ fun PasseioEstadoCard(
                 "Preço",
                 String.format(Locale.getDefault(), "€ %s", passeio.preco)
             )
+            val fornecedorNome = passeio.fornecedorNome
+            val fornecedorRating = passeio.fornecedorRating
+
+            val fornecedorTexto =
+                if (!passeio.fornecedorNome.isNullOrBlank()) {
+                    "${passeio.fornecedorNome}  ⭐ ${
+                        String.format(
+                            Locale.getDefault(),
+                            "%.1f",
+                            passeio.fornecedorRating ?: 0.0
+                        )
+                    }"
+                } else {
+                    "A aguardar fornecedor"
+                }
+
             InfoRow(
                 "👤",
                 "Fornecedor",
-                "${passeio.fornecedorNome}  ⭐ ${
-                    String.format(Locale.getDefault(), "%.1f", passeio.fornecedorRating)
-                }"
+                fornecedorTexto
             )
-
             Spacer(Modifier.height(12.dp))
 
             // ----------------------------

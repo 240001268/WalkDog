@@ -123,9 +123,10 @@ class MainActivity : ComponentActivity() {
                                 onEscolherPasseiosClick = {
                                     navController.navigate("escolher_passeios")
                                 },
-                                onScheduleClick = { tipoPasseio ->
-                                    navController.navigate("passeios_marcados/$tipoPasseio")
+                                onScheduleClick = { passeioId ->
+                                    navController.navigate("passeiosPendentes/$passeioId")
                                 },
+
                                 onVerPasseiosClick = {
                                     navController.navigate("passeios_estado")
                                 },
@@ -134,20 +135,23 @@ class MainActivity : ComponentActivity() {
                         }
 
                         composable("perfil_fornecedor/{fornecedorId}") { backStackEntry ->
-                            val fornecedorId = backStackEntry.arguments?.getString("fornecedorId")!!
+
+                            val fornecedorId =
+                                backStackEntry.arguments?.getString("fornecedorId")!!
 
                             PerfilFornecedorScreen(
-                                fornecedorId = fornecedorId,   // 👈 PERFIL PÚBLICO
+                                fornecedorId = fornecedorId,   // ✅ CORRETO
                                 onLogoutClick = {
                                     navController.popBackStack()
                                 },
-                                onEditPerfil = {},              // cliente não edita
+                                onEditPerfil = {},
                                 onEscolherPasseiosClick = {},
-                                onScheduleClick = {},
-                                onVerPasseiosClick = {}
+                                onVerPasseiosClick = {},
+                                onScheduleClick = { tipoId ->
+                                    navController.navigate("passeiosPendentes/$tipoId")
+                                }
                             )
                         }
-
                         // -----------------------
                         // EDITAR FORNECEDOR
                         // -----------------------
@@ -241,13 +245,6 @@ class MainActivity : ComponentActivity() {
                             )
                         }
 
-                        composable("passeios_marcados/{tipo}") { backStack ->
-                            val tipo = backStack.arguments?.getString("tipo") ?: ""
-                            PasseiosMarcadosFornecedorScreen(
-                                tipoPasseio = tipo,
-                                onBackClick = { navController.popBackStack() }
-                            )
-                        }
 
                         // -----------------------
                         // PASSEIOS ESTADO
@@ -261,6 +258,13 @@ class MainActivity : ComponentActivity() {
                                         "avaliar_fornecedor/$passeioId/$fornecedorId"
                                     )
                                 }
+                            )
+                        }
+
+                        composable("passeiosPendentes/{passeiotipoId}") { backStack ->
+                            PasseiosPendentesPorTipoScreen(
+                                passeiotipoId = backStack.arguments?.getString("passeiotipoId")!!,
+                                onBackClick = { navController.popBackStack() }
                             )
                         }
 

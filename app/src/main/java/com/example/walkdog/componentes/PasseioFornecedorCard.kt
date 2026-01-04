@@ -30,8 +30,8 @@ fun PasseioFornecedorCard(
             Text("Descrição: $descricao", fontSize = 18.sp, fontWeight = FontWeight.Bold)
             Spacer(Modifier.height(6.dp))
 
-            Text("Duração: $duracaoStr min", fontSize = 15.sp)
-            Text("Preço: €$precoStr", fontSize = 15.sp, fontWeight = FontWeight.Medium)
+            Text("Duração: $duracaoStr", fontSize = 15.sp)
+            Text("Preço: $precoStr", fontSize = 15.sp, fontWeight = FontWeight.Medium)
 
             Spacer(Modifier.height(12.dp))
 
@@ -48,3 +48,39 @@ fun PasseioFornecedorCard(
 }
 
 
+@Composable
+fun PasseioPendenteCard(
+    descricao: String,
+    localidade: String,
+    hora: String,
+    preco: String,
+    onAceitar: () -> Unit
+) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(16.dp),
+        elevation = CardDefaults.cardElevation(4.dp)
+    ) {
+        Column(
+            modifier = Modifier.padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(6.dp)
+        ) {
+
+            Text(descricao, fontWeight = FontWeight.Bold)
+
+            Text("📍 $localidade")
+            Text("⏰ $hora")
+            Text("💶 € $preco")
+
+            Spacer(Modifier.height(12.dp))
+
+            Button(
+                onClick = onAceitar,
+                modifier = Modifier.fillMaxWidth(),
+                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF2E7D32))
+            ) {
+                Text("Aceitar Passeio", color = Color.White)
+            }
+        }
+    }
+}
