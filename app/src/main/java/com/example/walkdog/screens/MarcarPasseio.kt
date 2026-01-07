@@ -3,6 +3,7 @@ package com.example.walkdog.screens
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.*
@@ -12,6 +13,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.walkdog.viewmodel.MarcarPasseioViewModel
 import androidx.compose.material3.MenuAnchorType
+import androidx.compose.ui.graphics.Color
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -43,12 +45,16 @@ fun MarcarPasseioScreen(
     var horaInicio by remember { mutableStateOf("") }
 
     Scaffold(
+        containerColor = Color(0xFFF8F3FB), // 👈 MESMO FUNDO DO FORMULÁRIO
         topBar = {
             TopAppBar(
                 title = { Text("Marcar Passeio") },
                 navigationIcon = {
                     IconButton(onClick = onBackClick) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Voltar")
+                        Icon(
+                            Icons.AutoMirrored.Filled.ArrowBack,
+                            contentDescription = "Voltar"
+                        )
                     }
                 }
             )
@@ -58,7 +64,6 @@ fun MarcarPasseioScreen(
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
-                .background(MaterialTheme.colorScheme.background)
                 .padding(padding)
                 .padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(20.dp)
@@ -68,13 +73,12 @@ fun MarcarPasseioScreen(
             // CÃO
             // -----------------------
             item {
-                FormSection(title = "Cão") {
+                FormSectionCard(title = "Cão") {
                     DropdownSelector(
                         label = "Selecionar cão",
                         options = state.caes.map { it.data["nome"]?.toString() ?: "Cão" },
                         onSelected = { index ->
                             viewModel.selecionarCao(state.caes[index].id)
-
                         }
                     )
                 }
@@ -84,7 +88,7 @@ fun MarcarPasseioScreen(
             // PASSEIO
             // -----------------------
             item {
-                FormSection(title = "Passeio") {
+                FormSectionCard(title = "Passeio") {
 
                     DropdownSelector(
                         label = "Tipo de passeio",
@@ -96,11 +100,8 @@ fun MarcarPasseioScreen(
                         }
                     )
 
-                    Spacer(Modifier.height(12.dp))
-
-                    // ✅ VALOR DO PASSEIO (NO CONTEXTO CERTO)
                     OutlinedTextField(
-                        value = state.precoFinal?.let { "$it €" } ?: "--",
+                        value = state.precoFinal?.let { "$it " } ?: "",
                         onValueChange = {},
                         readOnly = true,
                         label = { Text("Valor do passeio") },
@@ -113,7 +114,7 @@ fun MarcarPasseioScreen(
             // FORNECEDOR
             // -----------------------
             item {
-                FormSection(title = "Fornecedor (opcional)") {
+                FormSectionCard(title = "Fornecedor (opcional)") {
                     DropdownSelector(
                         label = "Fornecedor",
                         options = listOf("Sem fornecedor") +
@@ -137,7 +138,8 @@ fun MarcarPasseioScreen(
             // LOCAL / HORA
             // -----------------------
             item {
-                FormSection(title = "Detalhes") {
+                FormSectionCard(title = "Detalhes") {
+
                     OutlinedTextField(
                         value = localidade,
                         onValueChange = { localidade = it },
@@ -145,8 +147,6 @@ fun MarcarPasseioScreen(
                         modifier = Modifier.fillMaxWidth(),
                         colors = roxoFieldColors
                     )
-
-                    Spacer(Modifier.height(12.dp))
 
                     OutlinedTextField(
                         value = horaInicio,
@@ -166,15 +166,19 @@ fun MarcarPasseioScreen(
                     onClick = {
                         viewModel.confirmarPasseio(localidade, horaInicio)
                     },
-                    modifier = Modifier.fillMaxWidth(),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(52.dp),
+                    shape = RoundedCornerShape(14.dp),
                     enabled = !state.loading &&
                             state.caoSelecionadoId != null &&
                             state.tipoPasseioSelecionado != null
                 ) {
                     if (state.loading) {
                         CircularProgressIndicator(
-                            modifier = Modifier.size(20.dp),
-                            strokeWidth = 2.dp
+                            modifier = Modifier.size(22.dp),
+                            strokeWidth = 2.dp,
+                            color = MaterialTheme.colorScheme.onPrimary
                         )
                     } else {
                         Text("Confirmar pedido")
@@ -194,14 +198,28 @@ fun MarcarPasseioScreen(
     }
 }
 @Composable
-fun FormSection(
+fun FormSectionCard(
     title: String,
     content: @Composable ColumnScope.() -> Unit
 ) {
-    Column {
-        Text(title, style = MaterialTheme.typography.titleMedium)
-        Spacer(Modifier.height(8.dp))
-        content()
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(18.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.08f)
+        )
+    ) {
+        Column(
+            modifier = Modifier.padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            Text(
+                text = title,
+                style = MaterialTheme.typography.titleMedium,
+                color = MaterialTheme.colorScheme.primary
+            )
+            content()
+        }
     }
 }
 

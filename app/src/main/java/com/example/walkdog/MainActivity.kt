@@ -117,20 +117,21 @@ class MainActivity : ComponentActivity() {
                                 onLogoutClick = {
                                     loginVM.logout(navController)
                                 },
+                                onBackClick = {
+                                    loginVM.logout(navController)
+                                },
                                 onEditPerfil = { id ->
                                     navController.navigate("editar_fornecedor/$id")
                                 },
                                 onEscolherPasseiosClick = {
                                     navController.navigate("escolher_passeios")
                                 },
-                                onScheduleClick = { passeioId ->
-                                    navController.navigate("passeiosPendentes/$passeioId")
-                                },
-
                                 onVerPasseiosClick = {
                                     navController.navigate("passeios_estado")
                                 },
-
+                                onScheduleClick = { passeioId ->
+                                    navController.navigate("passeiosPendentes/$passeioId")
+                                }
                             )
                         }
 
@@ -140,8 +141,9 @@ class MainActivity : ComponentActivity() {
                                 backStackEntry.arguments?.getString("fornecedorId")!!
 
                             PerfilFornecedorScreen(
-                                fornecedorId = fornecedorId,   // ✅ CORRETO
-                                onLogoutClick = {
+                                fornecedorId = fornecedorId,
+                                onLogoutClick = {}, // 👈 nunca será chamado aqui
+                                onBackClick = {
                                     navController.popBackStack()
                                 },
                                 onEditPerfil = {},

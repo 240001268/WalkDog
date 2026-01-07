@@ -31,10 +31,12 @@ import com.example.walkdog.utils.buildFotoFornecedorUrl
 fun PerfilFornecedorScreen(
     fornecedorId: String?,
     onLogoutClick: () -> Unit,
+    onBackClick: () -> Unit, // 👈 NOVO
     onEditPerfil: (String) -> Unit,
     onEscolherPasseiosClick: () -> Unit,
     onVerPasseiosClick: () -> Unit,
     onScheduleClick: (String) -> Unit
+
 ) {
     val viewModel: PerfilFornecedorViewModel = viewModel()
     val state by viewModel.state.collectAsState()
@@ -75,12 +77,16 @@ fun PerfilFornecedorScreen(
                 navigationIcon = {
                     IconButton(
                         onClick = {
-                            if (isPerfilProprio) onLogoutClick()
+                            if (isPerfilProprio) {
+                                onLogoutClick()
+                            } else {
+                                onBackClick()
+                            }
                         }
                     ) {
                         Icon(
                             Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = null,
+                            contentDescription = "Voltar",
                             tint = Color.White
                         )
                     }
@@ -186,8 +192,11 @@ fun PerfilFornecedorScreen(
                     descricao = passeio.descricao,
                     duracaoStr = passeio.duracao,
                     precoStr = passeio.preco,
+                    enabled = isPerfilProprio,
                     onAgendar = {
-                        onScheduleClick(passeio.tipoId)
+                        if (isPerfilProprio) {
+                            onScheduleClick(passeio.tipoId)
+                        }
                     }
                 )
             }

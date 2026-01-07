@@ -8,45 +8,47 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 
 @Composable
 fun PasseioFornecedorCard(
     descricao: String,
     duracaoStr: String,
     precoStr: String,
+    enabled: Boolean,
     onAgendar: () -> Unit
 ) {
     Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(vertical = 6.dp),
-        shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(Color.White),
+        modifier = Modifier.fillMaxWidth(),
         elevation = CardDefaults.cardElevation(3.dp)
     ) {
-        Column(modifier = Modifier.padding(16.dp)) {
+        Column(Modifier.padding(16.dp)) {
 
-            Text("Descrição: $descricao", fontSize = 18.sp, fontWeight = FontWeight.Bold)
-            Spacer(Modifier.height(6.dp))
+            Text(descricao, fontWeight = FontWeight.Bold)
+            Text("Duração: $duracaoStr")
+            Text("Preço: $precoStr")
 
-            Text("Duração: $duracaoStr", fontSize = 15.sp)
-            Text("Preço: $precoStr", fontSize = 15.sp, fontWeight = FontWeight.Medium)
-
-            Spacer(Modifier.height(12.dp))
+            Spacer(Modifier.height(8.dp))
 
             Button(
                 onClick = onAgendar,
-                colors = ButtonDefaults.buttonColors(Color(0xFF6A1B9A)),
-                shape = RoundedCornerShape(12.dp),
-                modifier = Modifier.fillMaxWidth()
+                enabled = enabled,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(48.dp),
+                shape = RoundedCornerShape(24.dp),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = Color(0xFF6A1B9A) // 👈 MESMA COR DO "VER MEUS PASSEIOS"
+                )
             ) {
-                Text("Agendar Passeio", color = Color.White)
+                Text(
+                    "Agendar Pendentes",
+                    color = Color.White,
+                    fontWeight = FontWeight.SemiBold
+                )
             }
         }
     }
 }
-
 
 @Composable
 fun PasseioPendenteCard(
